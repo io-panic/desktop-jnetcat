@@ -1,0 +1,10 @@
+{
+  "startAsServer": true,
+  "useProtocolTCP": true,
+  "serverParametersTCP": {
+    "multiThread": false,
+    "ip": "0.0.0.0",
+    "port": 8080,
+    "serverType": "ECHO"
+  }
+}

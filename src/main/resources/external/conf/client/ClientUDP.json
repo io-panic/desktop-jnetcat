@@ -1,0 +1,11 @@
+{
+  "startAsServer": false,
+  "useProtocolTCP": false,
+  "clientParametersUDP": {
+    "ip": "192.168.135.55",
+    "port": 1,
+    "nbClientMax": 1,
+    "nbExecution": 1,
+    "sleepBetweenExecMs": 1000
+  }
+}
