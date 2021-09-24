@@ -26,9 +26,7 @@
 package com.ioleak.jnetcat.server.tcp;
 
 import com.ioleak.jnetcat.common.BaseEnum;
-import com.ioleak.jnetcat.server.tcp.implement.Basic;
-import com.ioleak.jnetcat.server.tcp.implement.Echo;
-import com.ioleak.jnetcat.server.tcp.implement.Proxy;
+import com.ioleak.jnetcat.server.ClientConnectionFactory;
 
 public enum TCPServerType
         implements BaseEnum {
@@ -57,21 +55,7 @@ public enum TCPServerType
   }
 
   public TCPClientConnection getClient() {
-    TCPClientConnection server = null;
-
-    switch (TCPServerType.valueOf(name())) {
-      case BASIC:
-        server = new Basic();
-        break;
-      case ECHO:
-        server = new Echo();
-        break;
-      case PROXY:
-        server = new Proxy();
-        break;
-    }
-
-    return server;
+    return ClientConnectionFactory.createClientConnectionTCP(this);
   }
 
   @Override

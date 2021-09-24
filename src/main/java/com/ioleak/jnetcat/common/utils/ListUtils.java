@@ -23,54 +23,58 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.ioleak.jnetcat.server.generic;
+
+package com.ioleak.jnetcat.common.utils;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 
-import com.ioleak.jnetcat.common.property.ListProperty;
-import com.ioleak.jnetcat.server.console.KeyCharReader;
+public class ListUtils {
+    public static <T> List<T> union(Collection<? extends T> left, Collection<? extends T> right) {
+        Set<T> set = new HashSet<>();
 
-public abstract class Listener<T, S> {
+        if (left != null)
+          set.addAll(left);
+        
+        if (right != null)
+          set.addAll(right);
 
-  private T serverType;
-  private int port;
+        return new ArrayList<>(set);
+    }
 
-  private final ListProperty<S> connectionClients = new ListProperty<>();
-  private final Thread keyCharReaderThread = new Thread(new KeyCharReader(this::stopServer));
+    public static <T> List<T> intersection(Collection<? extends T> left, Collection<? extends T> right) {
+        List<T> list = new ArrayList<>();
 
-  public abstract void startServer();
+        if (left != null && right != null) {
+          for (T t : left) {
+              if(right.contains(t)) {
+                  list.add(t);
+              }
+          }
+        }
+        
+        return list;
+    }
+    
+    public static <T> List<T> complement(Collection<? extends T> left, Collection<? extends T> universalSet) {
+        List<T> list = new ArrayList<>();
 
-  public abstract boolean stopServer();
+        if (universalSet != null) {
+          if (left != null && !left.isEmpty()) {
+            for (T t : universalSet) {
+                if(!left.contains(t)) {
+                    list.add(t);
+                }
+            }
+          } else {
+            list.addAll(universalSet);
+          }     
+        }
 
-  public Listener(T serverType, int port) {
-    setServerType(serverType);
-    setPort(port);
-  }
-
-  public final void startCharReaderThread() {
-    keyCharReaderThread.start();
-  }
-
-  public final void stopCharReaderThread() {
-    keyCharReaderThread.interrupt();
-  }
-
-  public final void setServerType(T serverType) {
-    this.serverType = serverType;
-  }
-
-  public final T getServerType() {
-    return serverType;
-  }
-
-  public final void setPort(int port) {
-    this.port = port;
-  }
-
-  public final int getPort() {
-    return port;
-  }
-
-  protected final ListProperty<S> getConnectionClients() {
-    return connectionClients;
-  }
+        return list;
+    }
 }

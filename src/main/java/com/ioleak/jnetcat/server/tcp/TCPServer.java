@@ -62,7 +62,7 @@ public class TCPServer
 
       while (true) {
         Socket socket = serverSocket.accept();
-        getObjectProperty().getObject().add(socket);
+        getConnectionClients().add(socket);
 
         Logging.getLogger().info(String.format("Connection received from %s", socket.getRemoteSocketAddress()));
 
@@ -84,7 +84,7 @@ public class TCPServer
   public boolean stopServer() {
     boolean serverClosed = false;
 
-    List<Socket> sockets = getObjectProperty().getObject();
+    List<Socket> sockets = getConnectionClients();
     for (Socket socket : sockets) {
       if (socket.isConnected() && !socket.isClosed()) {
         Logging.getLogger().warn(String.format("Received a key to stop client connection (%s)", socket.getRemoteSocketAddress()));

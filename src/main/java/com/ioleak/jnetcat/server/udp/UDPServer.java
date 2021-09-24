@@ -25,13 +25,14 @@
  */
 package com.ioleak.jnetcat.server.udp;
 
-import com.ioleak.jnetcat.common.Logging;
-import com.ioleak.jnetcat.options.startup.ServerParametersUDP;
-import com.ioleak.jnetcat.server.generic.Listener;
 import java.io.IOException;
 import java.net.DatagramSocket;
 import java.net.SocketException;
 import java.util.List;
+
+import com.ioleak.jnetcat.common.Logging;
+import com.ioleak.jnetcat.options.startup.ServerParametersUDP;
+import com.ioleak.jnetcat.server.generic.Listener;
 
 public class UDPServer
         extends Listener<UDPServerType, DatagramSocket> {
@@ -51,7 +52,7 @@ public class UDPServer
     try ( DatagramSocket serverSocket = new DatagramSocket(getPort())) {
 
       while (true) {
-        getObjectProperty().getObject().add(serverSocket);
+        getConnectionClients().add(serverSocket);
         Logging.getLogger().info(String.format("Connection received from %s", serverSocket.getRemoteSocketAddress()));
 
         try {
@@ -72,7 +73,7 @@ public class UDPServer
   public boolean stopServer() {
     boolean serverClosed = false;
 
-    List<DatagramSocket> serverSockets = getObjectProperty().getObject();
+    List<DatagramSocket> serverSockets = getConnectionClients();
     for (DatagramSocket serverSocket : serverSockets) {
       if (serverSocket.isConnected() && !serverSocket.isClosed()) {
         Logging.getLogger().warn(String.format("Received a key to stop client connection (%s)", serverSocket.getRemoteSocketAddress()));

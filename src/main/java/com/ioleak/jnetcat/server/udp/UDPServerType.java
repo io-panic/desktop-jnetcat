@@ -26,8 +26,7 @@
 package com.ioleak.jnetcat.server.udp;
 
 import com.ioleak.jnetcat.common.BaseEnum;
-import com.ioleak.jnetcat.server.udp.implement.Basic;
-import com.ioleak.jnetcat.server.udp.implement.Quote;
+import com.ioleak.jnetcat.server.ClientConnectionFactory;
 
 public enum UDPServerType
         implements BaseEnum {
@@ -55,18 +54,7 @@ public enum UDPServerType
   }
 
   public UDPClientConnection getClient() {
-    UDPClientConnection server = null;
-
-    switch (UDPServerType.valueOf(name())) {
-      case BASIC:
-        server = new Basic();
-        break;
-      case QUOTE:
-        server = new Quote();
-        break;
-    }
-
-    return server;
+    return ClientConnectionFactory.createClientConnectionUDP(this);
   }
 
   @Override

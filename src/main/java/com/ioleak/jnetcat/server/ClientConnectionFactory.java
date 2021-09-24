@@ -23,54 +23,49 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.ioleak.jnetcat.server.generic;
+
+package com.ioleak.jnetcat.server;
+
+import com.ioleak.jnetcat.server.tcp.TCPClientConnection;
+import com.ioleak.jnetcat.server.tcp.TCPServerType;
+import com.ioleak.jnetcat.server.tcp.implement.Echo;
+import com.ioleak.jnetcat.server.tcp.implement.Proxy;
+import com.ioleak.jnetcat.server.udp.UDPClientConnection;
+import com.ioleak.jnetcat.server.udp.UDPServerType;
+import com.ioleak.jnetcat.server.udp.implement.Quote;
 
 
-import com.ioleak.jnetcat.common.property.ListProperty;
-import com.ioleak.jnetcat.server.console.KeyCharReader;
+public class ClientConnectionFactory {
+  public static TCPClientConnection createClientConnectionTCP(TCPServerType tcpServerType) {
+    TCPClientConnection server = null;
 
-public abstract class Listener<T, S> {
+    switch (TCPServerType.valueOf(tcpServerType.name())) {
+      case BASIC:
+        server = new com.ioleak.jnetcat.server.tcp.implement.Basic();
+        break;
+      case ECHO:
+        server = new Echo();
+        break;
+      case PROXY:
+        server = new Proxy();
+        break;
+    }
 
-  private T serverType;
-  private int port;
-
-  private final ListProperty<S> connectionClients = new ListProperty<>();
-  private final Thread keyCharReaderThread = new Thread(new KeyCharReader(this::stopServer));
-
-  public abstract void startServer();
-
-  public abstract boolean stopServer();
-
-  public Listener(T serverType, int port) {
-    setServerType(serverType);
-    setPort(port);
+    return server;
   }
+  
+  public static UDPClientConnection createClientConnectionUDP(UDPServerType udpServerType) {
+    UDPClientConnection server = null;
 
-  public final void startCharReaderThread() {
-    keyCharReaderThread.start();
-  }
+    switch (UDPServerType.valueOf(udpServerType.name())) {
+      case BASIC:
+        server = new com.ioleak.jnetcat.server.udp.implement.Basic();
+        break;
+      case QUOTE:
+        server = new Quote();
+        break;
+    }
 
-  public final void stopCharReaderThread() {
-    keyCharReaderThread.interrupt();
-  }
-
-  public final void setServerType(T serverType) {
-    this.serverType = serverType;
-  }
-
-  public final T getServerType() {
-    return serverType;
-  }
-
-  public final void setPort(int port) {
-    this.port = port;
-  }
-
-  public final int getPort() {
-    return port;
-  }
-
-  protected final ListProperty<S> getConnectionClients() {
-    return connectionClients;
+    return server;
   }
 }

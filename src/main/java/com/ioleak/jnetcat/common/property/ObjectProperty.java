@@ -32,7 +32,7 @@ import java.beans.PropertyChangeSupport;
 public class ObjectProperty<T>
         implements Observable {
 
-  private PropertyChangeSupport listenerManager = new PropertyChangeSupport(this);
+  private final PropertyChangeSupport listenerManager = new PropertyChangeSupport(this);
   private T object;
 
   @Override
@@ -50,9 +50,15 @@ public class ObjectProperty<T>
   }
 
   public void setObject(T object) {
-    PropertyChangeEvent event = new PropertyChangeEvent(this, "object", this.object, object);
-
-    this.object = object;
-    listenerManager.firePropertyChange(event);
+    if (isModified()) {
+      PropertyChangeEvent event = new PropertyChangeEvent(this, "object", this.object, object);
+      
+      this.object = object;
+      listenerManager.firePropertyChange(event);
+    }
+  }
+  
+  private boolean isModified() {
+    return (object != this.object && (object != null && !object.equals(this.object)));
   }
 }

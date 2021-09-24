@@ -29,7 +29,7 @@ import java.beans.PropertyChangeListener;
 
 public interface Observable {
 
-  void addListener(PropertyChangeListener listener);
+  public void addListener(PropertyChangeListener listener);
 
-  void removeListener(PropertyChangeListener listener);
+  public void removeListener(PropertyChangeListener listener);
 }
