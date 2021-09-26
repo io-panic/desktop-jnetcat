@@ -23,7 +23,6 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-
 package com.ioleak.jnetcat.common.utils;
 
 import java.util.ArrayList;
@@ -32,49 +31,53 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-
 public class ListUtils {
-    public static <T> List<T> union(Collection<? extends T> left, Collection<? extends T> right) {
-        Set<T> set = new HashSet<>();
 
-        if (left != null)
-          set.addAll(left);
-        
-        if (right != null)
-          set.addAll(right);
+  private ListUtils() {}
 
-        return new ArrayList<>(set);
+  public static <T> List<T> union(Collection<? extends T> left, Collection<? extends T> right) {
+    Set<T> set = new HashSet<>();
+
+    if (left != null) {
+      set.addAll(left);
     }
 
-    public static <T> List<T> intersection(Collection<? extends T> left, Collection<? extends T> right) {
-        List<T> list = new ArrayList<>();
+    if (right != null) {
+      set.addAll(right);
+    }
 
-        if (left != null && right != null) {
-          for (T t : left) {
-              if(right.contains(t)) {
-                  list.add(t);
-              }
+    return new ArrayList<>(set);
+  }
+
+  public static <T> List<T> intersection(Collection<? extends T> left, Collection<? extends T> right) {
+    List<T> list = new ArrayList<>();
+
+    if (left != null && right != null) {
+      for (T t : left) {
+        if (right.contains(t)) {
+          list.add(t);
+        }
+      }
+    }
+
+    return list;
+  }
+
+  public static <T> List<T> complement(Collection<? extends T> left, Collection<? extends T> universalSet) {
+    List<T> list = new ArrayList<>();
+
+    if (universalSet != null) {
+      if (left != null && !left.isEmpty()) {
+        for (T t : universalSet) {
+          if (!left.contains(t)) {
+            list.add(t);
           }
         }
-        
-        return list;
+      } else {
+        list.addAll(universalSet);
+      }
     }
-    
-    public static <T> List<T> complement(Collection<? extends T> left, Collection<? extends T> universalSet) {
-        List<T> list = new ArrayList<>();
 
-        if (universalSet != null) {
-          if (left != null && !left.isEmpty()) {
-            for (T t : universalSet) {
-                if(!left.contains(t)) {
-                    list.add(t);
-                }
-            }
-          } else {
-            list.addAll(universalSet);
-          }     
-        }
-
-        return list;
-    }
+    return list;
+  }
 }

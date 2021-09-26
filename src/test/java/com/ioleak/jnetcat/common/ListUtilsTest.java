@@ -34,21 +34,9 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class ListUtilsTest {
-
-  List<String> list_4items = Arrays.asList("A", "B", "C", "D");
-  List<String> list_5items = Arrays.asList("C", "D", "E", "F", "G");
-
-  public static void main(String[] args) {
-    String testDuplicate = "STRING_#1";
-
-    ArrayList<String> test = new ArrayList<>();
-    test.add(testDuplicate);
-    test.add(testDuplicate);
-
-    System.out.println(test.toString());
-
-  }
+public class ListUtilsTest {
+  private static final List<String> list_4items = Arrays.asList("A", "B", "C", "D");
+  private static final List<String> list_5items = Arrays.asList("C", "D", "E", "F", "G");
 
   @Test
   public void unionWithNullValues() {
@@ -70,8 +58,8 @@ class ListUtilsTest {
 
   @Test
   public void unionWithValidValues() {
-    List<String> result = ListUtils.union(list_4items, list_5items);
-    assertTrue(result.equals(Arrays.asList("A", "B", "C", "D", "E", "F", "G")));
+    assertTrue(ListUtils.union(list_4items, list_5items).equals(Arrays.asList("A", "B", "C", "D", "E", "F", "G")));
+    assertTrue(ListUtils.complement(new ArrayList<String>(), new ArrayList<>()).equals(Arrays.asList()));
   }
 
   @Test
@@ -94,8 +82,8 @@ class ListUtilsTest {
 
   @Test
   public void intersectionWithValidValues() {
-    List<String> result = ListUtils.intersection(list_4items, list_5items);
-    assertTrue(result.equals(Arrays.asList("C", "D")));
+    assertTrue(ListUtils.intersection(list_4items, list_5items).equals(Arrays.asList("C", "D")));
+    assertTrue(ListUtils.complement(new ArrayList<String>(), new ArrayList<>()).equals(Arrays.asList()));
   }
 
   @Test
@@ -115,10 +103,10 @@ class ListUtilsTest {
     List<String> result = ListUtils.complement(null, list_5items);
     assertTrue(result.equals(Arrays.asList("C", "D", "E", "F", "G")));
   }
-  
+
   @Test
   public void complementWithValidValues() {
-    List<String> result = ListUtils.complement(list_4items, list_5items);
-    assertTrue(result.equals(Arrays.asList("E", "F", "G")));
-  }  
+    assertTrue(ListUtils.complement(list_4items, list_5items).equals(Arrays.asList("E", "F", "G")));
+    assertTrue(ListUtils.complement(new ArrayList<String>(), new ArrayList<>()).equals(Arrays.asList()));
+  }
 }

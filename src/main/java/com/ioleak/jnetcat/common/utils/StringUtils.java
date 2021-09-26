@@ -25,13 +25,46 @@
  */
 package com.ioleak.jnetcat.common.utils;
 
+import java.nio.charset.Charset;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class FunctionUtils {
+public class StringUtils {
+
+  private static final int DEFAULT_STRINGBUILDER_CAPACITY = 250;
+  private static final int NB_CHAR_BETWEEN_LINES = 50;
 
   private static final String IPv4_REGEX_VALIDATION = "^(([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])(\\.(?!$)|$)){4}$";
   private static final Pattern pattern = Pattern.compile(IPv4_REGEX_VALIDATION);
+
+  private StringUtils() {
+  }
+
+  public static String toHex(String stringToHex) {
+    if (stringToHex == null || stringToHex.isEmpty()) {
+      return "";
+    }
+
+    StringBuilder buf = new StringBuilder(DEFAULT_STRINGBUILDER_CAPACITY);
+    for (int ch : stringToHex.getBytes(Charset.forName("UTF-8"))) {
+      buf.append(String.format("%02X", ch));
+    }
+
+    return buf.toString();
+  }
+
+  public static String toHexWithSpaceSeparator(String stringToHex) {
+    stringToHex = toHex(stringToHex);
+    return String.join(" ", stringToHex.split("(?<=\\G.{2})"));
+  }
+
+  public static String toStringWithLineSeparator(String stringToLineSeparator) {
+    if (stringToLineSeparator == null) {
+      return "";
+    }
+
+    return String.join("\n", stringToLineSeparator.split(String.format("(?<=\\G.{%d})", NB_CHAR_BETWEEN_LINES)));
+  }
 
   public static boolean isStringContainsIPv4(String ipv4) {
     Matcher matcher = pattern.matcher(ipv4);

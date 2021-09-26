@@ -25,69 +25,113 @@
  */
 package com.ioleak.jnetcat.common.utils;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.ioleak.jnetcat.common.Logging;
-
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.ioleak.jnetcat.common.Logging;
 
 public class JsonUtils {
 
-  private static ObjectMapper objectMapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
+  public static final String JSON_EMPTY = "{ }";
+
+  private static final ObjectMapper objectMapper = new ObjectMapper()
+          .enable(SerializationFeature.INDENT_OUTPUT)
+          .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+
+  private JsonUtils() {
+  }
 
   public static String objectToJson(Object object) {
-    String json = "";
+    String json = JSON_EMPTY;
 
     try {
-      json = objectMapper.writeValueAsString(object);
-    } catch (IOException ex) {
+      if (object != null) {
+        json = objectMapper.writeValueAsString(object);
+      }
+    } catch (JsonProcessingException ex) {
       Logging.getLogger().error("Cannot convert object to JSON string", ex);
     }
 
     return json;
   }
 
-  public static <T> T jsonToObject(String relativePathToFile, Class<T> clazz) {
+  public static <T> T jsonToObject(String jsonData, Class<T> clazz) {
     T object = null;
 
-    ClassLoader classloader = Thread.currentThread().getContextClassLoader();
-    URL pathToFile = getRelativePath(relativePathToFile, clazz);
-
-    try {
-      InputStream inputStream = new FileInputStream(new File(pathToFile.toURI()));
-
-      if (inputStream != null) {
-        object = (T) objectMapper.readValue(inputStream, clazz);
+    if (StringUtils.isNullOrEmpty(jsonData)) {
+      try {
+        object = clazz.getDeclaredConstructor().newInstance();
+      } catch (NoSuchMethodException | SecurityException | InstantiationException
+              | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
+        Logger.getLogger(JsonUtils.class.getName()).log(Level.SEVERE, null, ex);
       }
-    } catch (URISyntaxException | IOException ex) {
-      Logging.getLogger().error("Cannot convert json to Object", ex);
+    } else {
+      try {
+        object = (T) objectMapper.readValue(jsonData, clazz);
+      } catch (JsonProcessingException ex) {
+        Logging.getLogger().error("Unable to parse JSON data", ex);
+      }
     }
 
     return object;
   }
 
-  public static void saveJsonToFile(String relativePathToFile, String jsonData) {
+  public static String loadJsonFileToString(String relativePathToFile) {
+    Class clazz = JsonUtils.class;
+    URL pathToFile = getRelativePath(relativePathToFile, clazz);
+    String jsonContent = "";
+
+    try(InputStream inputStream = new FileInputStream(new File(pathToFile.toURI()))) {
+      ByteArrayOutputStream result = new ByteArrayOutputStream();
+
+      byte[] buffer = new byte[1024];
+      for (int length; (length = inputStream.read(buffer)) != -1;) {
+        result.write(buffer, 0, length);
+      }
+
+      jsonContent = result.toString("UTF-8");
+    } catch (URISyntaxException | IOException ex) {
+      Logging.getLogger().error("Cannot read file", ex);
+    }
+
+    return jsonContent;
+  }
+
+  public static Path saveJsonToFile(String relativePathToFile, String jsonData) {
+    Path fileSavedPath= null;
+    
     try {
       URL pathToFile = getRelativePath(relativePathToFile, JsonUtils.class);
       createDirectories(pathToFile);
 
-      Files.writeString(Paths.get(pathToFile.toURI()), jsonData, StandardOpenOption.CREATE_NEW);
+      fileSavedPath = Paths.get(pathToFile.toURI());
+      Files.writeString(fileSavedPath, jsonData, StandardOpenOption.CREATE);
+      Logging.getLogger().debug(String.format("JSON succesfully saved to file: %s", fileSavedPath));
     } catch (URISyntaxException | IOException ex) {
       Logging.getLogger().error(String.format("Unable to save JSON into file %s", relativePathToFile), ex);
     }
+    
+    return fileSavedPath;
   }
 
-  public static <T> URL getRelativePath(String relativePathToFile, Class<T> clazz) {
+  private static URL getRelativePath(String relativePathToFile, Class clazz) {
     ClassLoader classloader = Thread.currentThread().getContextClassLoader();
 
     URL url = classloader.getResource(relativePathToFile);
@@ -108,7 +152,7 @@ public class JsonUtils {
     return url;
   }
 
-  public static void createDirectories(URL url) {
+  private static void createDirectories(URL url) {
     try {
       File file = new File(url.toURI());
       file.getParentFile().mkdirs();

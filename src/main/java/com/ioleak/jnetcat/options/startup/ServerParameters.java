@@ -26,7 +26,7 @@
 package com.ioleak.jnetcat.options.startup;
 
 import com.ioleak.jnetcat.common.BaseObject;
-import com.ioleak.jnetcat.common.utils.FunctionUtils;
+import com.ioleak.jnetcat.common.utils.StringUtils;
 import com.ioleak.jnetcat.options.exception.IPv4InvalidArgumentException;
 import com.ioleak.jnetcat.options.exception.PortInvalidArgumentException;
 
@@ -63,7 +63,7 @@ public abstract class ServerParameters
   }
 
   ServerParameters(ParametersBuilder<?> builder) {
-    if (!FunctionUtils.isNullOrEmpty(builder.ip) && !FunctionUtils.isStringContainsIPv4(builder.ip)) {
+    if (!StringUtils.isNullOrEmpty(builder.ip) && !StringUtils.isStringContainsIPv4(builder.ip)) {
       throw new IPv4InvalidArgumentException("IP must use a standard IPv4 format (0.0.0.0)");
     }
 
