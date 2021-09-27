@@ -52,8 +52,6 @@ public class TCPServer
   public void startServer() {
     Logging.getLogger().info(String.format("Listening on port %d", getPort()));
     Logging.getLogger().info(String.format("Server act as a server: %s", getServerType().toString()));
-    Logging.getLogger().info("Hit key 's' to stop an established connection");
-    Logging.getLogger().info("Hit key 'q' to close this server");
 
     KeyCharReader keyCharReader = new KeyCharReader(this::stopServer);
     new Thread(keyCharReader).start();

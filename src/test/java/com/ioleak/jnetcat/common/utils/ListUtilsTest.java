@@ -23,17 +23,20 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.ioleak.jnetcat.common;
+package com.ioleak.jnetcat.common.utils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import com.ioleak.jnetcat.common.utils.ListUtils;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+@Execution(ExecutionMode.CONCURRENT)
 public class ListUtilsTest {
   private static final List<String> list_4items = Arrays.asList("A", "B", "C", "D");
   private static final List<String> list_5items = Arrays.asList("C", "D", "E", "F", "G");
@@ -47,19 +50,19 @@ public class ListUtilsTest {
   @Test
   public void unionWithLeftNullValues() {
     List<String> result = ListUtils.union(null, list_5items);
-    assertTrue(result.equals(Arrays.asList("C", "D", "E", "F", "G")));
+    assertEquals(Arrays.asList("C", "D", "E", "F", "G"), result);
   }
 
   @Test
   public void unionWithRightNullValues() {
     List<String> result = ListUtils.union(list_4items, null);
-    assertTrue(result.equals(Arrays.asList("A", "B", "C", "D")));
+    assertEquals(Arrays.asList("A", "B", "C", "D"), result);
   }
 
   @Test
   public void unionWithValidValues() {
-    assertTrue(ListUtils.union(list_4items, list_5items).equals(Arrays.asList("A", "B", "C", "D", "E", "F", "G")));
     assertTrue(ListUtils.complement(new ArrayList<String>(), new ArrayList<>()).equals(Arrays.asList()));
+    assertEquals(Arrays.asList("A", "B", "C", "D", "E", "F", "G"), ListUtils.union(list_4items, list_5items));
   }
 
   @Test
@@ -82,8 +85,8 @@ public class ListUtilsTest {
 
   @Test
   public void intersectionWithValidValues() {
-    assertTrue(ListUtils.intersection(list_4items, list_5items).equals(Arrays.asList("C", "D")));
     assertTrue(ListUtils.complement(new ArrayList<String>(), new ArrayList<>()).equals(Arrays.asList()));
+    assertEquals(Arrays.asList("C", "D"), ListUtils.intersection(list_4items, list_5items));
   }
 
   @Test
@@ -101,12 +104,12 @@ public class ListUtilsTest {
   @Test
   public void complementWithRightNullValues() {
     List<String> result = ListUtils.complement(null, list_5items);
-    assertTrue(result.equals(Arrays.asList("C", "D", "E", "F", "G")));
+    assertEquals(Arrays.asList("C", "D", "E", "F", "G"), result);
   }
 
   @Test
   public void complementWithValidValues() {
-    assertTrue(ListUtils.complement(list_4items, list_5items).equals(Arrays.asList("E", "F", "G")));
     assertTrue(ListUtils.complement(new ArrayList<String>(), new ArrayList<>()).equals(Arrays.asList()));
+    assertEquals(Arrays.asList("E", "F", "G"), ListUtils.complement(list_4items, list_5items));
   }
 }

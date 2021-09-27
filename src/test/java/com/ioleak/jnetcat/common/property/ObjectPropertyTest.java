@@ -26,50 +26,47 @@
 package com.ioleak.jnetcat.common.property;
 
 import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeSupport;
 
-public class ObjectProperty<T>
-        implements Observable {
+import com.ioleak.jnetcat.common.utils.StringUtils;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-  public final static String PROPERTYNAME = "object";
-  
-  private final PropertyChangeSupport listenerManager = new PropertyChangeSupport(this);
-  private T object;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+public class ObjectPropertyTest {
 
-  public ObjectProperty() {
-    this(null);
+  private PropertyChangeEvent event;
+  private ObjectProperty<String> objectProperty;
+
+  @BeforeEach
+  public void initListProperty() {
+    objectProperty = new ObjectProperty<>();
+    objectProperty.addListener((PropertyChangeEvent propertyChangeEvent) -> {
+      this.event = propertyChangeEvent;
+    });
+
+    event = null;
   }
 
-  public ObjectProperty(T objectValue) {
-    this.object = objectValue;
+  @Test
+  public void addValueToEmptyPropertyWithEvent() {
+    objectProperty.setObject("One Value");
+
+    assertTrue(event != null);
+    assertTrue(StringUtils.isNullOrEmpty((String) event.getOldValue()));
+    assertEquals("One Value", event.getNewValue());
+    assertEquals("One Value", objectProperty.getObject());
   }
 
-  @Override
-  public void addListener(PropertyChangeListener listener) {
-    listenerManager.addPropertyChangeListener(listener);
-  }
+  @Test
+  public void addValueToExistingPropertyWithEvent() {
+    objectProperty.setObject("One Value");
+    objectProperty.setObject("New Value");
 
-  @Override
-  public void removeListener(PropertyChangeListener listener) {
-    listenerManager.removePropertyChangeListener(listener);
-  }
-
-  public T getObject() {
-    return object;
-  }
-
-  public void setObject(T object) {
-    if (isModified(object)) {
-      PropertyChangeEvent event = new PropertyChangeEvent(this, PROPERTYNAME, this.object, object);
-
-      this.object = object;
-      listenerManager.firePropertyChange(event);
-    }
-  }
-
-  private boolean isModified(Object object) {
-    return (object != this.object && (object != null && !object.equals(this.object)));
+    assertTrue(event != null);
+    assertEquals("One Value", event.getOldValue());
+    assertEquals("New Value", event.getNewValue());
+    assertEquals("New Value", objectProperty.getObject());
   }
 }

@@ -53,11 +53,9 @@ public class ListUtils {
     List<T> list = new ArrayList<>();
 
     if (left != null && right != null) {
-      for (T t : left) {
-        if (right.contains(t)) {
-          list.add(t);
-        }
-      }
+      left.stream().filter(t -> (right.contains(t))).forEachOrdered(t -> {
+        list.add(t);
+      });
     }
 
     return list;
@@ -68,11 +66,9 @@ public class ListUtils {
 
     if (universalSet != null) {
       if (left != null && !left.isEmpty()) {
-        for (T t : universalSet) {
-          if (!left.contains(t)) {
-            list.add(t);
-          }
-        }
+        universalSet.stream().filter(t -> (!left.contains(t))).forEachOrdered(t -> {
+          list.add(t);
+        });
       } else {
         list.addAll(universalSet);
       }

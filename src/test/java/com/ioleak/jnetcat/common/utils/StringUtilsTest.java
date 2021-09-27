@@ -23,17 +23,16 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.ioleak.jnetcat.common.utils;
 
-package com.ioleak.jnetcat.common;
-
-import com.ioleak.jnetcat.common.utils.StringUtils;
 import org.junit.jupiter.api.Test;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-
 public class StringUtilsTest {
+
   @Test
   public void toHexSpaceSeparatorWithNullInput() {
     assertTrue(StringUtils.toHexWithSpaceSeparator(null).equals(""));
@@ -43,12 +42,12 @@ public class StringUtilsTest {
   public void toHexSpaceSeparatorWithEmptyInput() {
     assertTrue(StringUtils.toHexWithSpaceSeparator("").equals(""));
   }
-    
+
   @Test
-  public void toHexSpaceSeparatorWithValidInput() { 
-    assertTrue(StringUtils.toHexWithSpaceSeparator("Hello to you !\n").equals("48 65 6C 6C 6F 20 74 6F 20 79 6F 75 20 21 0A"));
-    assertTrue(StringUtils.toHexWithSpaceSeparator("\n").equals("0A"));
-    assertTrue(StringUtils.toHexWithSpaceSeparator("\n 11").equals("0A 20 31 31"));
+  public void toHexSpaceSeparatorWithValidInput() {
+    assertEquals("48 65 6C 6C 6F 20 74 6F 20 79 6F 75 20 21 0A", StringUtils.toHexWithSpaceSeparator("Hello to you !\n"));
+    assertEquals("0A", StringUtils.toHexWithSpaceSeparator("\n"));
+    assertEquals("0A 20 31 31", StringUtils.toHexWithSpaceSeparator("\n 11"));
   }
   
   @Test
@@ -60,17 +59,17 @@ public class StringUtilsTest {
   public void toStringWithLineSeparatorEmptyInput() {
     assertTrue(StringUtils.toStringWithLineSeparator("").equals(""));
   }
-    
+
   @Test
   public void toStringWithLineSeparatorValidInput() {
     String stringToSplit = "XX012345012345012345012345012345012345012345012345XX234501234501234501234501234501234501234501234501XX2345012345012345012345 0123450123450123450123450XX12345";
 
-    assertTrue(StringUtils.toStringWithLineSeparator(stringToSplit).equals("XX012345012345012345012345012345012345012345012345\n" +
-            "XX234501234501234501234501234501234501234501234501\n" +
-            "XX2345012345012345012345 0123450123450123450123450\n" +
-            "XX12345"));
-  } 
-  
+    assertEquals("XX012345012345012345012345012345012345012345012345\n"
+            + "XX234501234501234501234501234501234501234501234501\n"
+            + "XX2345012345012345012345 0123450123450123450123450\n"
+            + "XX12345", StringUtils.toStringWithLineSeparator(stringToSplit));
+  }
+
   @Test
   public void stringIsNullOrEmpty() {
     assertTrue(StringUtils.isNullOrEmpty(""));
@@ -79,14 +78,14 @@ public class StringUtilsTest {
     assertFalse(StringUtils.isNullOrEmpty("ABCDEF"));
     assertFalse(StringUtils.isNullOrEmpty("0"));
   }
-  
+
   @Test
   public void verifyStringContainsIpv4() {
     assertTrue(StringUtils.isStringContainsIPv4("236.65.43.33"));
     assertTrue(StringUtils.isStringContainsIPv4("0.0.0.0"));
     assertTrue(StringUtils.isStringContainsIPv4("255.255.255.255"));
-    assertFalse(StringUtils.isStringContainsIPv4("256.255.255.255"));  
-    assertFalse(StringUtils.isStringContainsIPv4("-25.25.25.25"));  
-    assertFalse(StringUtils.isStringContainsIPv4("255:255:255:255")); 
+    assertFalse(StringUtils.isStringContainsIPv4("256.255.255.255"));
+    assertFalse(StringUtils.isStringContainsIPv4("-25.25.25.25"));
+    assertFalse(StringUtils.isStringContainsIPv4("255:255:255:255"));
   }
 }

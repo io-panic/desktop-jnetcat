@@ -79,7 +79,7 @@ public abstract class ClientParameters
       throw new IPv4InvalidArgumentException("IP must use a standard IPv4 format (0.0.0.0)");
     }
 
-    if (builder.port < 1 && builder.port > 65535) {
+    if (builder.port < 1 || builder.port > 65535) {
       throw new PortInvalidArgumentException("Port range is not valid. You must specify a port between 1 and 65535");
     }
 

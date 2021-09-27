@@ -27,7 +27,6 @@ package com.ioleak.jnetcat.options.startup;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.ioleak.jnetcat.options.startup.ServerParameters;
 import com.ioleak.jnetcat.server.udp.UDPServerType;
 
 @JsonDeserialize(builder = ServerParametersUDP.ParametersBuilder.class)

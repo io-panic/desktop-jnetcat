@@ -23,12 +23,11 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.ioleak.jnetcat.common.cli;
+package com.ioleak.jnetcat.common.arguments;
 
-import java.lang.reflect.Field;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.TreeSet;
 
 /**
@@ -36,20 +35,18 @@ import java.util.TreeSet;
  * License: Apache License 2
  * Author: Jakob Jenkov
  */
-public class CliArgs {
+public class CommandLineArguments {
 
   private String[] args = null;
 
-  private HashMap<String, Integer> switchIndexes = new HashMap<String, Integer>();
-  private TreeSet<Integer> takenIndexes = new TreeSet<Integer>();
+  private final Map<String, Integer> switchIndexes = new HashMap<String, Integer>();
+  private final Set<Integer> takenIndexes = new TreeSet<Integer>();
 
-  private List<String> targets = new ArrayList<String>();
-
-  public CliArgs(String[] args) {
+  public CommandLineArguments(String[] args) {
     parse(args);
   }
 
-  public void parse(String[] arguments) {
+  public final void parse(String[] arguments) {
     this.args = arguments;
     //locate switches.
     switchIndexes.clear();
@@ -135,59 +132,6 @@ public class CliArgs {
       values[j] = args[switchIndex + j + 1];
     }
     return values;
-  }
-
-  public <T> T switchPojo(Class<T> pojoClass) {
-    try {
-      T pojo = pojoClass.newInstance();
-
-      Field[] fields = pojoClass.getFields();
-      for (Field field : fields) {
-        Class fieldType = field.getType();
-        String fieldName = "-" + field.getName().replace('_', '-');
-
-        if (fieldType.equals(Boolean.class) || fieldType.equals(boolean.class)) {
-          field.set(pojo, switchPresent(fieldName));
-        } else if (fieldType.equals(String.class)) {
-          if (switchValue(fieldName) != null) {
-            field.set(pojo, switchValue(fieldName));
-          }
-        } else if (fieldType.equals(Long.class) || fieldType.equals(long.class)) {
-          if (switchLongValue(fieldName) != null) {
-            field.set(pojo, switchLongValue(fieldName));
-          }
-        } else if (fieldType.equals(Integer.class) || fieldType.equals(int.class)) {
-          if (switchLongValue(fieldName) != null) {
-            field.set(pojo, switchLongValue(fieldName).intValue());
-          }
-        } else if (fieldType.equals(Short.class) || fieldType.equals(short.class)) {
-          if (switchLongValue(fieldName) != null) {
-            field.set(pojo, switchLongValue(fieldName).shortValue());
-          }
-        } else if (fieldType.equals(Byte.class) || fieldType.equals(byte.class)) {
-          if (switchLongValue(fieldName) != null) {
-            field.set(pojo, switchLongValue(fieldName).byteValue());
-          }
-        } else if (fieldType.equals(Double.class) || fieldType.equals(double.class)) {
-          if (switchDoubleValue(fieldName) != null) {
-            field.set(pojo, switchDoubleValue(fieldName));
-          }
-        } else if (fieldType.equals(Float.class) || fieldType.equals(float.class)) {
-          if (switchDoubleValue(fieldName) != null) {
-            field.set(pojo, switchDoubleValue(fieldName).floatValue());
-          }
-        } else if (fieldType.equals(String[].class)) {
-          String[] values = switchValues(fieldName);
-          if (values.length != 0) {
-            field.set(pojo, values);
-          }
-        }
-      }
-
-      return pojo;
-    } catch (Exception e) {
-      throw new RuntimeException("Error creating switch POJO", e);
-    }
   }
 
   public String[] targets() {

@@ -23,18 +23,18 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.ioleak.jnetcat.common;
+package com.ioleak.jnetcat.common.utils;
 
 import java.io.File;
 import java.nio.file.Path;
 import java.util.LinkedHashMap;
 
-import com.ioleak.jnetcat.common.utils.JsonUtils;
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @TestMethodOrder(OrderAnnotation.class)
@@ -52,23 +52,23 @@ public class JsonUtilsTest {
     JsonObjectTest jsonObjectTest = new JsonObjectTest("XXXX", "YYYYY", 35, 5.95);
     String json = JsonUtils.objectToJson(jsonObjectTest);
 
-    assertTrue(json.equals(JSON_DATA));
+    assertEquals(json, JSON_DATA);
   }
 
   @Test
   public void convertObjectToJsonWithInvalidValue() {
-    assertTrue(JsonUtils.objectToJson(null).equals(JsonUtils.JSON_EMPTY));
-    assertTrue(JsonUtils.objectToJson(new Object()).equals(JsonUtils.JSON_EMPTY));
+    assertEquals(JsonUtils.JSON_EMPTY, JsonUtils.objectToJson(null));
+    assertEquals(JsonUtils.JSON_EMPTY, JsonUtils.objectToJson(new Object()));
   }
 
   @Test
   public void convertJsonToObject() {
     JsonObjectTest jsonObjectTest = JsonUtils.jsonToObject(JSON_DATA, JsonObjectTest.class);
 
-    assertTrue(jsonObjectTest.getFirstName().equals("XXXX"));
-    assertTrue(jsonObjectTest.getLastName().equals("YYYYY"));
-    assertTrue(jsonObjectTest.getAge() == 35);
-    assertTrue(jsonObjectTest.getMoney() == 5.95);
+    assertEquals("XXXX", jsonObjectTest.getFirstName());
+    assertEquals("YYYYY", jsonObjectTest.getLastName());
+    assertEquals(35, jsonObjectTest.getAge());
+    assertEquals(5.95, jsonObjectTest.getMoney());
   }
 
   @Test
@@ -89,7 +89,7 @@ public class JsonUtilsTest {
   @Order(2)
   public void testJsonFileLoad() {
     String json = JsonUtils.loadJsonFileToString("test/test.json");
-    assertTrue(json.equals(JSON_DATA));
+    assertEquals(JSON_DATA, json);
   }
 
   private static class JsonObjectTest {

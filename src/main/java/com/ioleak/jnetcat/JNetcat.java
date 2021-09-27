@@ -27,7 +27,7 @@ package com.ioleak.jnetcat;
 
 import com.ioleak.jnetcat.client.TCPClient;
 import com.ioleak.jnetcat.client.UDPClient;
-import com.ioleak.jnetcat.common.cli.CliArgs;
+import com.ioleak.jnetcat.common.arguments.CommandLineArguments;
 import com.ioleak.jnetcat.common.utils.JsonUtils;
 import com.ioleak.jnetcat.options.JNetcatParameters;
 import com.ioleak.jnetcat.server.tcp.TCPServer;
@@ -36,15 +36,16 @@ import com.ioleak.jnetcat.server.udp.UDPServer;
 public class JNetcat {
 
   public static void main(String... args) {
-    String jsonParameters = "external/conf/AllOptionsInOne2.json";
-    CliArgs cliArgs = new CliArgs(args);
+    String jsonParameters = "external/conf/AllOptionsInOne.json";
+    CommandLineArguments cliArgs = new CommandLineArguments(args);
     int returnCode = 0;
 
     if (cliArgs.switchPresent("-f")) {
       jsonParameters = cliArgs.switchValue("-f");
     }
 
-    JNetcatParameters params = JsonUtils.jsonToObject(jsonParameters, JNetcatParameters.class);
+    String jsonData = JsonUtils.loadJsonFileToString(jsonParameters);
+    JNetcatParameters params = JsonUtils.jsonToObject(jsonData, JNetcatParameters.class);
     if (params != null) {
       if (params.isStartAsServer()) {
         if (params.isUseProtocolTCP()) {

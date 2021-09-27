@@ -25,18 +25,26 @@
  */
 package com.ioleak.jnetcat.server.console;
 
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 import java.io.IOException;
 import java.util.function.Supplier;
 
 import com.ioleak.jnetcat.common.Logging;
+import com.ioleak.jnetcat.common.property.Observable;
 
 public class KeyCharReader
-        implements Runnable {
+        implements Runnable, Observable {
+
+  private final PropertyChangeSupport listenerManager = new PropertyChangeSupport(this);
 
   private final Supplier<Boolean> actionOnStop;
   private boolean keyboardHitStop = false;
 
   public KeyCharReader(Supplier<Boolean> actionOnStop) {
+    Logging.getLogger().info("Hit key 's' to stop an established connection");
+    Logging.getLogger().info("Hit key 'q' to close this server");
+
     this.actionOnStop = actionOnStop;
   }
 
@@ -44,6 +52,12 @@ public class KeyCharReader
   public void run() {
     while (!Thread.currentThread().isInterrupted()) {
       readChar();
+
+      try {
+        Thread.sleep(100);
+      } catch (InterruptedException ex) {
+        Logging.getLogger().error("KeyCharReader interrupted", ex);
+      }
     }
 
     Logging.getLogger().warn("Keyboard thread is closed: console won't responds to command anymore");
@@ -52,6 +66,11 @@ public class KeyCharReader
   private void readChar() {
     try {
       char key = (char) System.in.read();
+      if ((int) key == 65535) {
+        return;
+      }
+
+      listenerManager.firePropertyChange("keyreader", null, key);
 
       if (key == 'q') {
         Logging.getLogger().warn("Exit program: q key used");
@@ -66,5 +85,15 @@ public class KeyCharReader
 
   public boolean isInterrupted() {
     return keyboardHitStop;
+  }
+
+  @Override
+  public void addListener(PropertyChangeListener listener) {
+    listenerManager.addPropertyChangeListener(listener);
+  }
+
+  @Override
+  public void removeListener(PropertyChangeListener listener) {
+    listenerManager.removePropertyChangeListener(listener);
   }
 }

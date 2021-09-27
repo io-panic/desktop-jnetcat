@@ -20,3 +20,11 @@ jlink --add-modules java.base,java.desktop,java.sql,java.xml,java.scripting,java
 
 * mvn clean package
 	-> will output result executable in target/dist
+
+# Tests reports
+
+add maven-failsafe-plugin
+mvn surefire-report:report
+
+target\site
+target\surefire-reports

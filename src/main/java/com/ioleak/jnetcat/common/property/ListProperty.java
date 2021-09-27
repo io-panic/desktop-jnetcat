@@ -23,7 +23,6 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-
 package com.ioleak.jnetcat.common.property;
 
 import java.beans.PropertyChangeEvent;
@@ -35,189 +34,189 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 
-
-
 public class ListProperty<T>
-    implements List<T>, Observable {
+        implements List<T>, Observable {
 
+  public final static String PROPERTYNAME = "list";
+  
   private final PropertyChangeSupport listenerManager = new PropertyChangeSupport(this);
-  private final List<T> observedCollection;
-  
+  private final List<T> observedList;
+
   public ListProperty() {
-    this.observedCollection = new ArrayList<>();
+    this(new ArrayList<>());
   }
-  
-  public ListProperty(List<T> observedCollection) {
-    this.observedCollection = observedCollection;
+
+  public ListProperty(List<T> observedList) {
+    this.observedList = observedList;
   }
-  
+
   @Override
   public int size() {
-    return observedCollection.size();
+    return observedList.size();
   }
 
   @Override
   public boolean isEmpty() {
-    return observedCollection.isEmpty();
+    return observedList.isEmpty();
   }
 
   @Override
   public boolean contains(Object object) {
-    return observedCollection.contains(object);
+    return observedList.contains(object);
   }
 
   @Override
   public Iterator<T> iterator() {
-    return observedCollection.iterator();
+    return observedList.iterator();
   }
 
   @Override
   public Object[] toArray() {
-    return observedCollection.toArray();
+    return observedList.toArray();
   }
 
   @Override
   public <E> E[] toArray(E[] objects) {
-    return observedCollection.toArray(objects);
+    return observedList.toArray(objects);
   }
 
   @Override
   public boolean add(T object) {
-    PropertyChangeEvent event = new PropertyChangeEvent(this, "list-change", null, object);
+    PropertyChangeEvent event = new PropertyChangeEvent(this, PROPERTYNAME, null, object);
 
-    boolean added = observedCollection.add(object);
-    if (added)
-      listenerManager.firePropertyChange(event);
-
+    boolean added = observedList.add(object);
+    listenerManager.firePropertyChange(event);
+ 
     return added;
   }
 
   @Override
   public boolean remove(Object object) {
-    PropertyChangeEvent event = new PropertyChangeEvent(this, "list-change", object, null);
+    PropertyChangeEvent event = new PropertyChangeEvent(this, PROPERTYNAME, object, null);
 
-    boolean removed = observedCollection.remove(object);
-    if (removed)
+    boolean removed = observedList.remove(object);
+    if (removed) {
       listenerManager.firePropertyChange(event);
+    }
 
     return removed;
   }
 
   @Override
   public boolean containsAll(Collection<?> collection) {
-    return observedCollection.containsAll(collection);
+    return observedList.containsAll(collection);
   }
 
   @Override
   public boolean addAll(Collection<? extends T> collection) {
-    PropertyChangeEvent event = new PropertyChangeEvent(this, "list-change", collection, observedCollection);
-      
-    boolean modified = observedCollection.addAll(collection);
-    if (modified)
-      listenerManager.firePropertyChange(event);
+    PropertyChangeEvent event = new PropertyChangeEvent(this, PROPERTYNAME, collection, observedList);
+
+    boolean modified = observedList.addAll(collection);
+    listenerManager.firePropertyChange(event);
 
     return modified;
   }
 
   @Override
   public boolean addAll(int pos, Collection<? extends T> collection) {
-    PropertyChangeEvent event = new PropertyChangeEvent(this, "list-change", collection, observedCollection);
-      
-    boolean modified = observedCollection.addAll(pos, collection);
-    if (modified)
-      listenerManager.firePropertyChange(event);
+    PropertyChangeEvent event = new PropertyChangeEvent(this, PROPERTYNAME, collection, observedList);
 
+    boolean modified = observedList.addAll(pos, collection);
+    listenerManager.firePropertyChange(event);
+ 
     return modified;
   }
 
   @Override
   public boolean removeAll(Collection<?> collection) {
-    PropertyChangeEvent event = new PropertyChangeEvent(this, "list-change", collection, observedCollection);
-      
-    boolean removed = observedCollection.removeAll(collection);
-    if (removed)
+    PropertyChangeEvent event = new PropertyChangeEvent(this, PROPERTYNAME, collection, observedList);
+
+    boolean removed = observedList.removeAll(collection);
+    if (removed) {
       listenerManager.firePropertyChange(event);
+    }
 
     return removed;
   }
 
   @Override
   public boolean retainAll(Collection<?> collection) {
-    return observedCollection.retainAll(collection);
+    return observedList.retainAll(collection);
   }
 
   @Override
   public void clear() {
-    PropertyChangeEvent event = new PropertyChangeEvent(this, "list-change", observedCollection, null);
-    
-    if (!observedCollection.isEmpty()) {
-      observedCollection.clear();
-      
-      if (observedCollection.isEmpty())
+    PropertyChangeEvent event = new PropertyChangeEvent(this, PROPERTYNAME, observedList, null);
+
+    if (!observedList.isEmpty()) {
+      observedList.clear();
+
+      if (observedList.isEmpty()) {
         listenerManager.firePropertyChange(event);
+      }
     }
   }
 
   @Override
   public T get(int pos) {
-    return observedCollection.get(pos);
+    return observedList.get(pos);
   }
 
   @Override
   public T set(int pos, T object) {
     T objectSet = null;
-    
-    if ((observedCollection.get(pos) == null && object != null) || 
-        !(observedCollection.get(pos) != null && observedCollection.get(pos).equals(object))) {
-      
-      PropertyChangeEvent event = new PropertyChangeEvent(this, "list-change", observedCollection.get(pos), object);
-    
-      objectSet = observedCollection.set(pos, object);
+
+    if ((observedList.get(pos) == null && object != null)
+        || !(observedList.get(pos) != null && observedList.get(pos).equals(object))) {
+
+      PropertyChangeEvent event = new PropertyChangeEvent(this, PROPERTYNAME, observedList.get(pos), object);
+
+      objectSet = observedList.set(pos, object);
       listenerManager.firePropertyChange(event);
     }
-            
+
     return objectSet;
   }
 
   @Override
   public void add(int pos, T object) {
-    PropertyChangeEvent event = new PropertyChangeEvent(this, "list-change", observedCollection, object);
-    observedCollection.add(pos, object);
+    PropertyChangeEvent event = new PropertyChangeEvent(this, PROPERTYNAME, observedList, object);
+    observedList.add(pos, object);
     listenerManager.firePropertyChange(event);
   }
 
   @Override
   public T remove(int pos) {
-    PropertyChangeEvent event = new PropertyChangeEvent(this, "list-change", observedCollection, observedCollection.get(pos));
-    T objectRemoved = observedCollection.remove(pos);
+    PropertyChangeEvent event = new PropertyChangeEvent(this, PROPERTYNAME, observedList, observedList.get(pos));
+    T objectRemoved = observedList.remove(pos);
     listenerManager.firePropertyChange(event);
-    
+
     return objectRemoved;
   }
 
   @Override
   public int indexOf(Object object) {
-    return observedCollection.indexOf(object);
+    return observedList.indexOf(object);
   }
 
   @Override
   public int lastIndexOf(Object object) {
-    return observedCollection.lastIndexOf(object);
+    return observedList.lastIndexOf(object);
   }
 
   @Override
   public ListIterator<T> listIterator() {
-    return observedCollection.listIterator();
+    return observedList.listIterator();
   }
 
   @Override
   public ListIterator<T> listIterator(int index) {
-    return observedCollection.listIterator(index);
+    return observedList.listIterator(index);
   }
 
   @Override
   public List<T> subList(int from, int to) {
-    return observedCollection.subList(from, to);
+    return observedList.subList(from, to);
   }
 
   @Override
