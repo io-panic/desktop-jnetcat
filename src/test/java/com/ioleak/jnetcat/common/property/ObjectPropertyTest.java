@@ -50,7 +50,7 @@ public class ObjectPropertyTest {
   }
 
   @Test
-  public void addValueToEmptyPropertyWithEvent() {
+  public void setObject_ValueToEmpty_ValueWithEventFired() {
     objectProperty.setObject("One Value");
 
     assertTrue(event != null);
@@ -60,7 +60,7 @@ public class ObjectPropertyTest {
   }
 
   @Test
-  public void addValueToExistingPropertyWithEvent() {
+  public void setObject_ExistingPreviousValue_ValueWithEventFired() {
     objectProperty.setObject("One Value");
     objectProperty.setObject("New Value");
 

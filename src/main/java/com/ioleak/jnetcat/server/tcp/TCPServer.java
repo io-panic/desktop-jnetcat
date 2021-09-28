@@ -33,19 +33,20 @@ import java.util.List;
 
 import com.ioleak.jnetcat.common.Logging;
 import com.ioleak.jnetcat.options.startup.ServerParametersTCP;
-import com.ioleak.jnetcat.server.console.KeyCharReader;
 import com.ioleak.jnetcat.server.generic.Listener;
 
 public class TCPServer
         extends Listener<TCPServerType, Socket> {
 
+  private ServerSocket serverSocket;
+  private boolean stopServerHitKey = false;
+  
   public TCPServer(ServerParametersTCP serverParametersTCP) {
     this(serverParametersTCP.getServerType(), serverParametersTCP.getPort());
   }
 
   private TCPServer(TCPServerType serverType, int port) {
     super(serverType, port);
-    startCharReaderThread();
   }
 
   @Override
@@ -53,33 +54,42 @@ public class TCPServer
     Logging.getLogger().info(String.format("Listening on port %d", getPort()));
     Logging.getLogger().info(String.format("Server act as a server: %s", getServerType().toString()));
 
-    KeyCharReader keyCharReader = new KeyCharReader(this::stopServer);
-    new Thread(keyCharReader).start();
+    startCharReaderThread();
 
-    try ( ServerSocket serverSocket = new ServerSocket(getPort())) {
+    try {
+      serverSocket = new ServerSocket(getPort());
+ 
+      while (!stopServerHitKey && !Thread.currentThread().isInterrupted()) {
 
-      while (true) {
-        Socket socket = serverSocket.accept();
-        getConnectionClients().add(socket);
+        try (Socket socket = serverSocket.accept()) {
+          getConnectionClients().add(socket);
+          Logging.getLogger().info(String.format("Connection received from %s", socket.getRemoteSocketAddress()));
 
-        Logging.getLogger().info(String.format("Connection received from %s", socket.getRemoteSocketAddress()));
+          try {
+            getServerType().getClient().startClient(socket);
+          } catch (SocketException ex) {
+            System.out.println();
+            Logging.getLogger().info(String.format("Socket failure: %s", ex.getMessage()));
+          }
 
-        try {
-          getServerType().getClient().startClient(socket);
-        } catch (SocketException ex) {
-          System.out.println();
-          Logging.getLogger().info(String.format("Socket failure: %s", ex.getMessage()));
-        }
-
-        Logging.getLogger().info(String.format("Connection closed on client %s", socket.getRemoteSocketAddress()));
+          Logging.getLogger().info(String.format("Connection closed on client %s", socket.getRemoteSocketAddress()));
+        } catch (IOException ex) {
+          if (!stopServerHitKey)
+            Logging.getLogger().info("Client connection error", ex);
+        } 
       }
     } catch (IOException ex) {
-      Logging.getLogger().info(String.format("Unable to start TCP listener"));
+      if (!stopServerHitKey)
+        Logging.getLogger().info(String.format("Unable to start TCP listener"));
+    } finally {
+      // if we get here we'll be out of the JVM
     }
+    
+    Logging.getLogger().warn("Server not running ...");
   }
 
   @Override
-  public boolean stopServer() {
+  public boolean stopCurrentClient() {
     boolean serverClosed = false;
 
     List<Socket> sockets = getConnectionClients();
@@ -103,5 +113,24 @@ public class TCPServer
     }
 
     return serverClosed;
+  }
+  
+  @Override
+  public boolean stopServer() {
+    boolean closed = false;
+    stopServerHitKey = true;
+    
+    try {
+      Logging.getLogger().info("Close server request received...");
+      
+      if (serverSocket != null && !serverSocket.isClosed()) {
+        serverSocket.close();
+        closed = true;
+      }
+    } catch (IOException ex) {
+      Logging.getLogger().error("Unable to close", ex);
+    }
+    
+    return closed;
   }
 }

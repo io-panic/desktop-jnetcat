@@ -38,78 +38,79 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Execution(ExecutionMode.CONCURRENT)
 public class ListUtilsTest {
-  private static final List<String> list_4items = Arrays.asList("A", "B", "C", "D");
-  private static final List<String> list_5items = Arrays.asList("C", "D", "E", "F", "G");
+
+  private static final List<String> FIXED_LIST_4_ITEMS = Arrays.asList("A", "B", "C", "D");
+  private static final List<String> FIXED_LIST_5_ITEMS = Arrays.asList("C", "D", "E", "F", "G");
 
   @Test
-  public void unionWithNullValues() {
+  public void union_NullValues_Empty() {
     List<String> result = ListUtils.union(null, null);
     assertTrue(result.isEmpty());
   }
 
   @Test
-  public void unionWithLeftNullValues() {
-    List<String> result = ListUtils.union(null, list_5items);
+  public void union_LeftNullValues_EqualsToSelf() {
+    List<String> result = ListUtils.union(null, FIXED_LIST_5_ITEMS);
     assertEquals(Arrays.asList("C", "D", "E", "F", "G"), result);
   }
 
   @Test
-  public void unionWithRightNullValues() {
-    List<String> result = ListUtils.union(list_4items, null);
+  public void union_RightNullValues_EqualsToSelf() {
+    List<String> result = ListUtils.union(FIXED_LIST_4_ITEMS, null);
     assertEquals(Arrays.asList("A", "B", "C", "D"), result);
   }
 
   @Test
-  public void unionWithValidValues() {
+  public void union_ValidValues_Merge() {
     assertTrue(ListUtils.complement(new ArrayList<String>(), new ArrayList<>()).equals(Arrays.asList()));
-    assertEquals(Arrays.asList("A", "B", "C", "D", "E", "F", "G"), ListUtils.union(list_4items, list_5items));
+    assertEquals(Arrays.asList("A", "B", "C", "D", "E", "F", "G"), ListUtils.union(FIXED_LIST_4_ITEMS, FIXED_LIST_5_ITEMS));
   }
 
   @Test
-  public void intersectionWithNullValues() {
+  public void intersection_NullValues_Empty() {
     List<String> result = ListUtils.intersection(null, null);
     assertTrue(result.isEmpty());
   }
 
   @Test
-  public void intersectionWithLeftNullValues() {
-    List<String> result = ListUtils.intersection(list_4items, null);
+  public void intersection_LeftNullValues_Empty() {
+    List<String> result = ListUtils.intersection(FIXED_LIST_4_ITEMS, null);
     assertTrue(result.isEmpty());
   }
 
   @Test
-  public void intersectionWithRightNullValues() {
-    List<String> result = ListUtils.intersection(null, list_5items);
+  public void intersection_RightNullValues_Empty() {
+    List<String> result = ListUtils.intersection(null, FIXED_LIST_5_ITEMS);
     assertTrue(result.isEmpty());
   }
 
   @Test
-  public void intersectionWithValidValues() {
+  public void intersection_WithValidValues_ValidResult() {
     assertTrue(ListUtils.complement(new ArrayList<String>(), new ArrayList<>()).equals(Arrays.asList()));
-    assertEquals(Arrays.asList("C", "D"), ListUtils.intersection(list_4items, list_5items));
+    assertEquals(Arrays.asList("C", "D"), ListUtils.intersection(FIXED_LIST_4_ITEMS, FIXED_LIST_5_ITEMS));
   }
 
   @Test
-  public void complementWithNullValues() {
+  public void complement_NullValues_Empty() {
     List<String> result = ListUtils.complement(null, null);
     assertTrue(result.isEmpty());
   }
 
   @Test
-  public void complementWithLeftNullValues() {
-    List<String> result = ListUtils.complement(list_4items, null);
+  public void complement_LeftNullValues_Empty() {
+    List<String> result = ListUtils.complement(FIXED_LIST_4_ITEMS, null);
     assertTrue(result.isEmpty());
   }
 
   @Test
-  public void complementWithRightNullValues() {
-    List<String> result = ListUtils.complement(null, list_5items);
+  public void complement_RightNullValues_RightValue() {
+    List<String> result = ListUtils.complement(null, FIXED_LIST_5_ITEMS);
     assertEquals(Arrays.asList("C", "D", "E", "F", "G"), result);
   }
 
   @Test
-  public void complementWithValidValues() {
+  public void complement_ValidValues_ValidResult() {
     assertTrue(ListUtils.complement(new ArrayList<String>(), new ArrayList<>()).equals(Arrays.asList()));
-    assertEquals(Arrays.asList("E", "F", "G"), ListUtils.complement(list_4items, list_5items));
+    assertEquals(Arrays.asList("E", "F", "G"), ListUtils.complement(FIXED_LIST_4_ITEMS, FIXED_LIST_5_ITEMS));
   }
 }

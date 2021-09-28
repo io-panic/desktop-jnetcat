@@ -37,56 +37,104 @@ public class KeyCharReader
         implements Runnable, Observable {
 
   private final PropertyChangeSupport listenerManager = new PropertyChangeSupport(this);
-
-  private final Supplier<Boolean> actionOnStop;
+  private static final String THREAD_FORMAT_NAME = "Thread-%s";
+  private static final int WAIT_DELAY_NEXT_CHAR_MS = 100;
+  
+  private Supplier<Boolean> actionOnKeyS;
+  private Supplier<Boolean> actionOnKeyQ;
+    
   private boolean keyboardHitStop = false;
+  private boolean keyboardHitQuit = false;
 
-  public KeyCharReader(Supplier<Boolean> actionOnStop) {
-    Logging.getLogger().info("Hit key 's' to stop an established connection");
-    Logging.getLogger().info("Hit key 'q' to close this server");
+  public KeyCharReader() {
+    this(null, null);
+  }
 
-    this.actionOnStop = actionOnStop;
+  public KeyCharReader(Supplier<Boolean> actionOnKeyS, Supplier<Boolean> actionOnKeyQ) {
+    this.actionOnKeyS = actionOnKeyS;
+    this.actionOnKeyQ = actionOnKeyQ;
   }
 
   @Override
   public void run() {
+    Thread.currentThread().setName(String.format(THREAD_FORMAT_NAME, getClass().getSimpleName()));
+    showInfo();
+    
     while (!Thread.currentThread().isInterrupted()) {
-      readChar();
-
       try {
-        Thread.sleep(100);
+        readChar();
+        Thread.sleep(WAIT_DELAY_NEXT_CHAR_MS);
       } catch (InterruptedException ex) {
         Logging.getLogger().error("KeyCharReader interrupted", ex);
+      } catch (HitKeyCloseCharReaderException ex) {
+        //Thread.currentThread().interrupt();
+        Logging.getLogger().error(String.format("Thread will exit: %s", ex.getMessage()));
       }
     }
 
     Logging.getLogger().warn("Keyboard thread is closed: console won't responds to command anymore");
   }
 
-  private void readChar() {
+  public void showInfo() {
+    Logging.getLogger().info("Hit key 'k' to kill this key listener");
+    
+    if (this.actionOnKeyS != null) {
+      Logging.getLogger().info("Hit key 's' to stop an established connection");
+    }
+    
+    if (this.actionOnKeyQ != null) {
+      Logging.getLogger().info("Hit key 'q' to close this server");
+    }
+  }
+    
+  public boolean readChar() {
+    boolean charValid = true;
+
     try {
-      char key = (char) System.in.read();
-      if ((int) key == 65535) {
-        return;
+      while (charValid) {
+        char key = (char) System.in.read();
+        charValid = (key != 65535 && key != -1);
+
+        switch (key) {
+          case 'k':
+            throw new HitKeyCloseCharReaderException("Exit program: k key used");
+          case 'q':
+            if (actionOnKeyQ != null) {
+              keyboardHitQuit = actionOnKeyQ.get();
+            } else {
+              Logging.getLogger().warn("No action is defined as a quit (q) action. No action is taken");
+            }
+            break;
+          case 's':
+            if (actionOnKeyS != null) {
+              keyboardHitStop = actionOnKeyS.get();
+            } else {
+              Logging.getLogger().warn("No action is defined as a stop (s) action. No action is taken");
+            } break;
+          default:
+            break;
+        }
+
+        if (charValid) {
+          listenerManager.firePropertyChange("keyreader", null, key);
+        }
       }
 
-      listenerManager.firePropertyChange("keyreader", null, key);
-
-      if (key == 'q') {
-        Logging.getLogger().warn("Exit program: q key used");
-        System.exit(0);
-      } else if (key == 's') {
-        keyboardHitStop = actionOnStop.get();
-      }
     } catch (IOException ex) {
       Logging.getLogger().error(String.format("Unable to read char from keyboard: %s", ex.getMessage()));
     }
+    
+    return charValid;
   }
 
-  public boolean isInterrupted() {
+  public boolean isKeyStopPressed() {
     return keyboardHitStop;
   }
 
+  public boolean isKeyQuitPressed() {
+    return keyboardHitQuit;
+  }
+    
   @Override
   public void addListener(PropertyChangeListener listener) {
     listenerManager.addPropertyChangeListener(listener);

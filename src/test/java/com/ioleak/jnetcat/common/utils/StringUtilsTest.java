@@ -34,34 +34,34 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class StringUtilsTest {
 
   @Test
-  public void toHexSpaceSeparatorWithNullInput() {
-    assertTrue(StringUtils.toHexWithSpaceSeparator(null).equals(""));
+  public void toHexWithSpaceSeparator_NullInput_Empty() {
+    assertTrue(StringUtils.toHexWithSpaceSeparator(null).isEmpty());
   }
 
   @Test
-  public void toHexSpaceSeparatorWithEmptyInput() {
-    assertTrue(StringUtils.toHexWithSpaceSeparator("").equals(""));
+  public void toHexWithSpaceSeparator_EmptyInput_Empty() {
+    assertTrue(StringUtils.toHexWithSpaceSeparator("").isEmpty());
   }
 
   @Test
-  public void toHexSpaceSeparatorWithValidInput() {
+  public void toHexWithSpaceSeparator_ValidInput_AsExpected() {
     assertEquals("48 65 6C 6C 6F 20 74 6F 20 79 6F 75 20 21 0A", StringUtils.toHexWithSpaceSeparator("Hello to you !\n"));
     assertEquals("0A", StringUtils.toHexWithSpaceSeparator("\n"));
     assertEquals("0A 20 31 31", StringUtils.toHexWithSpaceSeparator("\n 11"));
   }
   
   @Test
-  public void toStringWithLineSeparatorNullInput() {
-    assertTrue(StringUtils.toStringWithLineSeparator(null).equals(""));
+  public void toStringWithLineSeparator_NullValue_Empty() {
+    assertTrue(StringUtils.toStringWithLineSeparator(null).isEmpty());
   }
 
   @Test
-  public void toStringWithLineSeparatorEmptyInput() {
-    assertTrue(StringUtils.toStringWithLineSeparator("").equals(""));
+  public void toStringWithLineSeparator_EmptyValue_Empty() {
+    assertTrue(StringUtils.toStringWithLineSeparator("").isEmpty());
   }
 
   @Test
-  public void toStringWithLineSeparatorValidInput() {
+  public void toStringWithLineSeparator_ValidValue_AsExpected() {
     String stringToSplit = "XX012345012345012345012345012345012345012345012345XX234501234501234501234501234501234501234501234501XX2345012345012345012345 0123450123450123450123450XX12345";
 
     assertEquals("XX012345012345012345012345012345012345012345012345\n"
@@ -71,7 +71,7 @@ public class StringUtilsTest {
   }
 
   @Test
-  public void stringIsNullOrEmpty() {
+  public void isNullOrEmpty_Values_AsExpected() {
     assertTrue(StringUtils.isNullOrEmpty(""));
     assertTrue(StringUtils.isNullOrEmpty(null));
     assertTrue(StringUtils.isNullOrEmpty(" "));
@@ -80,7 +80,7 @@ public class StringUtilsTest {
   }
 
   @Test
-  public void verifyStringContainsIpv4() {
+  public void isStringContainsIPv4_Values_AsExpected() {
     assertTrue(StringUtils.isStringContainsIPv4("236.65.43.33"));
     assertTrue(StringUtils.isStringContainsIPv4("0.0.0.0"));
     assertTrue(StringUtils.isStringContainsIPv4("255.255.255.255"));

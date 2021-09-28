@@ -27,7 +27,6 @@ package com.ioleak.jnetcat.server.console;
 
 import java.beans.PropertyChangeEvent;
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 import org.junit.jupiter.api.BeforeAll;
@@ -36,18 +35,22 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @TestInstance(Lifecycle.PER_CLASS)
 public class KeyCharReaderTest {
 
-  private final ByteArrayInputStream inContent = new ByteArrayInputStream("12345".getBytes());
-  private final ByteArrayOutputStream outContent = new ByteArrayOutputStream();
-  private final ByteArrayOutputStream errContent = new ByteArrayOutputStream();
-
   private PropertyChangeEvent event;
   private KeyCharReader keyCharReader;
+  
+  private boolean stopped = false;
+  private StringBuilder stringEventReceived;
   private Thread thread;
+  
+  private boolean hitKeyS = false;
+  private boolean hitKeyQ = false;
   
   @BeforeAll
   public void setUpStreams() {
@@ -57,12 +60,13 @@ public class KeyCharReaderTest {
   
   @BeforeEach
   public void initPropertyListener() {
-    keyCharReader = new KeyCharReader(() -> false);
+    keyCharReader = new KeyCharReader(this::hitKeyS, this::hitKeyQ);
+    stringEventReceived = new StringBuilder();
+    
     thread = new Thread(keyCharReader);
     keyCharReader.addListener((PropertyChangeEvent propertyChangeEvent) -> {
-      System.out.println(String.format("FIRE! : %s", propertyChangeEvent.getNewValue()));
       this.event = propertyChangeEvent;
-      thread.interrupt();
+      stringEventReceived.append(propertyChangeEvent.getNewValue());
     });
     
     
@@ -70,12 +74,47 @@ public class KeyCharReaderTest {
   }
   
   @Test
-  public void testFirePropertyFromKeyChar() throws IOException, InterruptedException {
-    
-    thread.start();
-    System.setIn(new ByteArrayInputStream("a".getBytes()));
-    thread.join(1000);
-    
+  public void readChar_HitKey_FirePropertyChange() throws IOException, InterruptedException {
+    System.setIn(new ByteArrayInputStream("abcd TesT #1 *?".getBytes()));
+    keyCharReader.readChar();
+
       assertTrue(event != null);
+      assertEquals("abcd TesT #1 *?", stringEventReceived.toString());
+  }
+  
+  @Test
+  public void readChar_HitKeyQ_FunctionExecuted() throws IOException, InterruptedException {
+    System.setIn(new ByteArrayInputStream("q".getBytes()));
+    keyCharReader.readChar();
+ 
+      assertTrue(event != null);
+      assertEquals("q", stringEventReceived.toString());
+      assertTrue(hitKeyQ);
+  }
+ 
+  @Test
+  public void readChar_HitKeyS_FunctionExecuted() throws IOException, InterruptedException {
+    System.setIn(new ByteArrayInputStream("s".getBytes()));
+    keyCharReader.readChar();
+ 
+      assertTrue(event != null);
+      assertEquals("s", stringEventReceived.toString());
+      assertTrue(hitKeyS);
+  }
+
+  @Test
+  public void readChar_HitKeyK_ThrowsException() throws IOException, InterruptedException {
+    System.setIn(new ByteArrayInputStream("k".getBytes()));
+    assertThrows(HitKeyCloseCharReaderException.class, () -> keyCharReader.readChar());
+  }
+          
+  private boolean hitKeyS() {
+    hitKeyS = true;
+    return hitKeyS;
+  }
+  
+  private boolean hitKeyQ() {
+    hitKeyQ = true;
+    return hitKeyQ;
   }
 }

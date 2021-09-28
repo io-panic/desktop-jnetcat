@@ -43,12 +43,12 @@ public class UDPServer
 
   private UDPServer(UDPServerType serverType, int port) {
     super(serverType, port);
-    startCharReaderThread();
   }
 
   @Override
   public void startServer() {
-
+    startCharReaderThread();
+    
     try ( DatagramSocket serverSocket = new DatagramSocket(getPort())) {
 
       while (true) {
@@ -70,7 +70,7 @@ public class UDPServer
   }
 
   @Override
-  public boolean stopServer() {
+  public boolean stopCurrentClient() {
     boolean serverClosed = false;
 
     List<DatagramSocket> serverSockets = getConnectionClients();
@@ -90,5 +90,11 @@ public class UDPServer
     }
 
     return serverClosed;
+  }
+  
+  @Override
+  public boolean stopServer() {
+    System.out.println("Stop server request");
+    return true;
   }
 }

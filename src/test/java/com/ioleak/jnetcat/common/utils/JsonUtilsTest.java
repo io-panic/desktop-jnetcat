@@ -48,7 +48,7 @@ public class JsonUtilsTest {
                                           + "}";
 
   @Test
-  public void convertObjectToJson() {
+  public void objectToJson_ValidObject_JsonString() {
     JsonObjectTest jsonObjectTest = new JsonObjectTest("XXXX", "YYYYY", 35, 5.95);
     String json = JsonUtils.objectToJson(jsonObjectTest);
 
@@ -56,13 +56,13 @@ public class JsonUtilsTest {
   }
 
   @Test
-  public void convertObjectToJsonWithInvalidValue() {
+  public void objectToJson_NullOrNew_JsonEmptyString() {
     assertEquals(JsonUtils.JSON_EMPTY, JsonUtils.objectToJson(null));
     assertEquals(JsonUtils.JSON_EMPTY, JsonUtils.objectToJson(new Object()));
   }
 
   @Test
-  public void convertJsonToObject() {
+  public void jsonToObject_JsonString_ObjectValues() {
     JsonObjectTest jsonObjectTest = JsonUtils.jsonToObject(JSON_DATA, JsonObjectTest.class);
 
     assertEquals("XXXX", jsonObjectTest.getFirstName());
@@ -72,7 +72,7 @@ public class JsonUtilsTest {
   }
 
   @Test
-  public void convertJsonToObjectWithInvalidValue() {
+  public void jsonToObject_InvalidDataOrCustomObject_ValidObject() {
     assertTrue(JsonUtils.jsonToObject(null, Object.class) != null);
     assertTrue(JsonUtils.jsonToObject("", Object.class) != null);
     assertTrue((int) (JsonUtils.jsonToObject("{ \"test\": 4 }", LinkedHashMap.class).get("test")) == 4);
@@ -80,14 +80,14 @@ public class JsonUtilsTest {
 
   @Test
   @Order(1)
-  public void testJSonFileCreation() {
+  public void saveJsonToFile_PathToFileWithData_FileExists() {
     Path fileSavedPath = JsonUtils.saveJsonToFile("test/test.json", JSON_DATA);
     assertTrue(fileSavedPath != null && new File(fileSavedPath.toUri()).exists());
   }
 
   @Test
   @Order(2)
-  public void testJsonFileLoad() {
+  public void loadJsonFileToString_PathToFile_StringResult() {
     String json = JsonUtils.loadJsonFileToString("test/test.json");
     assertEquals(JSON_DATA, json);
   }

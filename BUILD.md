@@ -16,6 +16,10 @@ java.xml
 
 jlink --add-modules java.base,java.desktop,java.sql,java.xml,java.scripting,java.naming,java.management --output custom-runt
 
+# Run debug 
+
+-Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_socket,server=y,address=8888,suspend=n
+
 # Binary creation
 
 * mvn clean package

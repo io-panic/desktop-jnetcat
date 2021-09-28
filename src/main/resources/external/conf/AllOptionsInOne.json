@@ -1,5 +1,5 @@
 {
-  "startAsServer": false,
+  "startAsServer": true,
   "useProtocolTCP": true,
   "clientParametersTCP": {
     "ip": "192.168.135.55",

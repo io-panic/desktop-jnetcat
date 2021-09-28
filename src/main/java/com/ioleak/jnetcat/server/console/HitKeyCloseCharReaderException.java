@@ -23,56 +23,14 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.ioleak.jnetcat.server.generic;
+
+package com.ioleak.jnetcat.server.console;
 
 
-import com.ioleak.jnetcat.common.property.ListProperty;
-import com.ioleak.jnetcat.server.console.KeyCharReader;
-
-public abstract class Listener<T, S> {
-
-  private T serverType;
-  private int port;
-
-  private final ListProperty<S> connectionClients = new ListProperty<>();
-  private final KeyCharReader keyCharReader = new KeyCharReader(this::stopCurrentClient, this::stopServer);
-  private final Thread keyCharReaderThread = new Thread(keyCharReader);
-
-  public abstract void startServer();
-  public abstract boolean stopServer();
-  public abstract boolean stopCurrentClient();
-
-  public Listener(T serverType, int port) {
-    setServerType(serverType);
-    setPort(port);
-  }
-
-  public final void startCharReaderThread() {
-    if(!keyCharReaderThread.isAlive())
-      keyCharReaderThread.start();
-  }
-
-  public final void stopCharReaderThread() {
-    keyCharReaderThread.interrupt();
-  }
-
-  public final void setServerType(T serverType) {
-    this.serverType = serverType;
-  }
-
-  public final T getServerType() {
-    return serverType;
-  }
-
-  public final void setPort(int port) {
-    this.port = port;
-  }
-
-  public final int getPort() {
-    return port;
-  }
-
-  protected final ListProperty<S> getConnectionClients() {
-    return connectionClients;
+public class HitKeyCloseCharReaderException
+        extends RuntimeException {
+  
+  public HitKeyCloseCharReaderException(String msg) {
+    super(msg);
   }
 }

@@ -42,7 +42,7 @@ public class JNetcatParametersTest {
   private static final String JSON_PARAM_FILE = "conf/AllInOneParametersTest.json";
 
   @Test
-  public void verifyJsonFileParametersLoaded() {
+  public void jsonToObject_FileParameter_ContentValid() {
     String json = JsonUtils.loadJsonFileToString(JSON_PARAM_FILE);
     JNetcatParameters params = JsonUtils.jsonToObject(json, JNetcatParameters.class);
 
@@ -51,25 +51,25 @@ public class JNetcatParametersTest {
   }
 
   @Test
-  public void loadInvalidParametersServer() {
+  public void ParametersBulder_InvalidServerOptions_ThrowsException() {
     assertThrows(ServerIncompatibleArgumentException.class, () -> new JNetcatParameters.ParametersBuilder(true, true).build());
     assertThrows(ServerIncompatibleArgumentException.class, () -> new JNetcatParameters.ParametersBuilder(true, false).build());
   }
 
   @Test
-  public void loadInvalidJsonParametersClient() {
+  public void ParametersBulder_InvalidClientOptions_ThrowsException() {
     assertThrows(ClientIncompatibleArgumentException.class, () -> new JNetcatParameters.ParametersBuilder(false, true).build());
     assertThrows(ClientIncompatibleArgumentException.class, () -> new JNetcatParameters.ParametersBuilder(false, false).build());
   }
 
   @Test
-  public void loadInvalidClientParameters_Ip() {
+  public void ParametersBulder_InvalidIP_ThrowsException() {
     assertThrows(IPv4InvalidArgumentException.class, () -> new ClientParametersTCP.ParametersBuilder("192.168.1.256", 80).build());
     assertThrows(IPv4InvalidArgumentException.class, () -> new ClientParametersUDP.ParametersBuilder("192.168.1.256", 80).build());
   }
 
   @Test
-  public void loadInvalidClientParameters_Port() {
+  public void ParametersBulder_InvalidPort_ThrowsException() {
     assertThrows(PortInvalidArgumentException.class, () -> new ClientParametersTCP.ParametersBuilder("192.168.1.255", -100).build());
     assertThrows(PortInvalidArgumentException.class, () -> new ClientParametersTCP.ParametersBuilder("192.168.1.255", 655356).build());
     assertThrows(PortInvalidArgumentException.class, () -> new ClientParametersUDP.ParametersBuilder("192.168.1.255", -100).build());

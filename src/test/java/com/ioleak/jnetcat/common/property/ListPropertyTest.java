@@ -53,7 +53,7 @@ public class ListPropertyTest {
   }
   
   @Test
-  public void addValueToListPropertyWithEvent() {
+  public void add_Value_ExpectValue() {
     listProperty.add("E");
     
     assertTrue(event != null);
@@ -62,14 +62,14 @@ public class ListPropertyTest {
   }
   
   @Test
-  public void removeValueToListPropertyWithoutEvent() {
+  public void remove_ValueDontExists_NoEventFired() {
     listProperty.remove("E");
     
     assertTrue(event == null);
   }
   
   @Test
-  public void removeValueToListPropertyWithEvent() {
+  public void remove_ExistingValue_ValueRemoved() {
     listProperty.remove("D");
     
     assertTrue(event != null);
@@ -78,7 +78,7 @@ public class ListPropertyTest {
   }
   
   @Test
-  public void addAllValuesToListPropertyWithEvent() {
+  public void addAll_ExistingAndNewValues_ValuesAdded() {
     listProperty.addAll(Arrays.asList("D", "E", "F"));
     
     assertTrue(event != null);
@@ -87,7 +87,7 @@ public class ListPropertyTest {
   }
   
   @Test
-  public void addAllValuesToListPropertyWithPositionEvent() {
+  public void addAll_ExistingAndNewValuesAtPosition_ValuesAdded() {
     listProperty.addAll(2, Arrays.asList("D", "E", "F"));
     
     assertTrue(event != null);
@@ -96,7 +96,7 @@ public class ListPropertyTest {
   }
   
   @Test
-  public void removeAllValuesToListPropertyWithEvent() {
+  public void removeAll_Values_Removed() {
     listProperty.removeAll(Arrays.asList("D", "E", "F"));
     
     assertTrue(event != null);
@@ -105,7 +105,7 @@ public class ListPropertyTest {
   }
   
   @Test
-  public void removeAllValuesToListPropertyWithoutEvent() {
+  public void removeAll_NoValuesExists_NoEventFired() {
     listProperty.removeAll(Arrays.asList("E", "F"));
     
     assertTrue(event == null);
