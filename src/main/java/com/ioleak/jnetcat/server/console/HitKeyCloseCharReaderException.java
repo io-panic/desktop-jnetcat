@@ -23,13 +23,11 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-
 package com.ioleak.jnetcat.server.console;
-
 
 public class HitKeyCloseCharReaderException
         extends RuntimeException {
-  
+
   public HitKeyCloseCharReaderException(String msg) {
     super(msg);
   }

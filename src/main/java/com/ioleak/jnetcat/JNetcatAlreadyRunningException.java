@@ -23,48 +23,12 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.ioleak.jnetcat.server;
+package com.ioleak.jnetcat;
 
-import com.ioleak.jnetcat.server.tcp.TCPClientConnection;
-import com.ioleak.jnetcat.server.tcp.TCPServerType;
-import com.ioleak.jnetcat.server.tcp.implement.Echo;
-import com.ioleak.jnetcat.server.tcp.implement.Proxy;
-import com.ioleak.jnetcat.server.udp.UDPClientConnection;
-import com.ioleak.jnetcat.server.udp.UDPServerType;
-import com.ioleak.jnetcat.server.udp.implement.Quote;
+public class JNetcatAlreadyRunningException
+        extends RuntimeException {
 
-public class ClientConnectionFactory {
-
-  public static TCPClientConnection createClientConnectionTCP(TCPServerType tcpServerType) {
-    TCPClientConnection server = null;
-
-    switch (TCPServerType.valueOf(tcpServerType.name())) {
-      case BASIC:
-        server = new com.ioleak.jnetcat.server.tcp.implement.Basic();
-        break;
-      case ECHO:
-        server = new Echo();
-        break;
-      case PROXY:
-        server = new Proxy();
-        break;
-    }
-
-    return server;
-  }
-
-  public static UDPClientConnection createClientConnectionUDP(UDPServerType udpServerType) {
-    UDPClientConnection server = null;
-
-    switch (UDPServerType.valueOf(udpServerType.name())) {
-      case BASIC:
-        server = new com.ioleak.jnetcat.server.udp.implement.Basic();
-        break;
-      case QUOTE:
-        server = new Quote();
-        break;
-    }
-
-    return server;
+  public JNetcatAlreadyRunningException(String msg) {
+    super(msg);
   }
 }

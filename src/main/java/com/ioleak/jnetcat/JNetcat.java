@@ -25,15 +25,23 @@
  */
 package com.ioleak.jnetcat;
 
-import com.ioleak.jnetcat.client.TCPClient;
-import com.ioleak.jnetcat.client.UDPClient;
+import java.io.File;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.util.Date;
+import java.util.Timer;
+import java.util.concurrent.CountDownLatch;
+
+import com.ioleak.jnetcat.common.FileWatcher;
+import com.ioleak.jnetcat.common.Logging;
 import com.ioleak.jnetcat.common.arguments.CommandLineArguments;
 import com.ioleak.jnetcat.common.utils.JsonUtils;
-import com.ioleak.jnetcat.options.JNetcatParameters;
-import com.ioleak.jnetcat.server.tcp.TCPServer;
-import com.ioleak.jnetcat.server.udp.UDPServer;
+import com.ioleak.jnetcat.server.console.KeyCharReader;
 
 public class JNetcat {
+
+  private static Thread jnetcatThread;
+  private static JNetcatProcess jnetcatRun;
 
   public static void main(String... args) {
     String jsonParameters = "external/conf/AllOptionsInOne.json";
@@ -44,52 +52,54 @@ public class JNetcat {
       jsonParameters = cliArgs.switchValue("-f");
     }
 
-    String jsonData = JsonUtils.loadJsonFileToString(jsonParameters);
-    JNetcatParameters params = JsonUtils.jsonToObject(jsonData, JNetcatParameters.class);
-    if (params != null) {
-      if (params.isStartAsServer()) {
-        if (params.isUseProtocolTCP()) {
-          TCPServer tcpListener = new TCPServer(params.getServerParametersTCP());
-          tcpListener.startServer();
-        } else {
-          UDPServer tcpListener = new UDPServer(params.getServerParametersUDP());
-          tcpListener.startServer();
-        }
-      } else {
-        if (params.isUseProtocolTCP()) {
-          TCPClient tcpClient = new TCPClient(params.getClientParametersTCP());
-          tcpClient.open();
+    URL url = JsonUtils.getRelativePath(jsonParameters, JNetcat.class);
 
-          if (!tcpClient.isConnected()) {
-            returnCode = 1;
-          }
-        } else {
-          UDPClient udpConnect = new UDPClient(params.getClientParametersUDP());
-          udpConnect.open();
-        }
+    try {
+      File jsonFile = new File(url.toURI());
+
+      FileWatcher fileWatcher = new FileWatcher(jsonFile, JNetcat::paramsHotReload);
+      Timer timer = new Timer();
+      timer.schedule(fileWatcher, new Date(), 1000);
+
+      jnetcatRun = new JNetcatProcess(jsonFile);
+      jnetcatThread = new Thread(jnetcatRun);
+      jnetcatThread.start();
+
+      KeyCharReader keyCharReader = new KeyCharReader(jnetcatRun::stopActiveExecution, jnetcatRun::stopExecutions);
+      keyCharReader.run();
+
+      final CountDownLatch latch = new CountDownLatch(1);
+      try {
+        latch.await();
+      } catch (InterruptedException ex) {
+        Logging.getLogger().error("Execution interrupted. Program will exit.", ex);
       }
-    } else {
-      returnCode = 1;
+    } catch (URISyntaxException ex) {
+      Logging.getLogger().error("Cannot start execution, invalid URI", ex);
     }
-    
-    /*
-        ClientParametersTCP clientParametersTCP = new ClientParametersTCP.ParametersBuilder("192.168.135.55", 1).withNbClientMax(1).withNbExecution(1).build();
-        ServerParametersTCP serverParametersTCP = new ServerParametersTCP.ParametersBuilder(8080).withIp("0.0.0.0").withMultiThread(false).withServerType(TCPServerType.ECHO).build();
-        ClientParametersUDP clientParametersUDP = new ClientParametersUDP.ParametersBuilder("192.168.135.55", 1).withNbClientMax(1).withNbExecution(1).build();
-        ServerParametersUDP serverParametersUDP = new ServerParametersUDP.ParametersBuilder(8080).withIp("0.0.0.0").withMultiThread(false).withServerType(UDPServerType.QUOTE).build();
-        
-        JNetcatParameters jnetcatParameters = new JNetcatParameters.ParametersBuilder(false, true).withClientParametersTCP(clientParametersTCP).withServerParametersTCP(serverParametersTCP).withClientParametersUDP(clientParametersUDP).withServerParametersUDP(serverParametersUDP).build();
-        jnetcatParameters.saveToJsonFile(jsonParameters);
-     */
- /*
-        if (args.serverArgs != null && args.serverArgs.server) {
-            TCPServer tcpListener = new TCPServer(args.serverArgs.serverType, port);
-            tcpListener.startServer();
-        } else if (args.clientArgs != null && args.clientArgs.client) {
-            TCPConnect tcpClient = new TCPConnect(ip, Integer.valueOf(port)).open();
-            Logging.getLogger().info(String.format("Connection established on %s:%s -> %s", ip, port, tcpClient.isConnected()));
-            tcpClient.close();
-        }*/
+
     System.exit(returnCode);
+  }
+
+  private static boolean paramsHotReload(File jsonParamsFile) {
+    Logging.getLogger().info(String.format("File (%s) modified: trying to hot reload...", jsonParamsFile.getAbsolutePath()));
+
+    if (jnetcatThread != null) {
+      jnetcatRun.stopExecutions();
+      jnetcatThread.interrupt();
+
+      try {
+        jnetcatThread.join();
+      } catch (InterruptedException ex) {
+        Logging.getLogger().warn("A running thread was interrupted (and it was expected to stop: this message is informative only)");
+      }
+
+      Logging.getLogger().warn(String.format("Existing thread stopped with return code: %d", jnetcatRun.getResultExecution()));
+    }
+
+    jnetcatThread = new Thread(jnetcatRun);
+    jnetcatThread.start();
+
+    return true;
   }
 }

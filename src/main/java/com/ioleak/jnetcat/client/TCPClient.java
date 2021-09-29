@@ -32,9 +32,11 @@ import java.io.PrintWriter;
 import java.net.Socket;
 
 import com.ioleak.jnetcat.common.Logging;
+import com.ioleak.jnetcat.common.interfaces.ProcessAction;
 import com.ioleak.jnetcat.options.startup.ClientParametersTCP;
 
-public class TCPClient {
+public class TCPClient
+        implements ProcessAction {
 
   private Socket clientSocket;
   private PrintWriter out;
@@ -106,5 +108,15 @@ public class TCPClient {
 
   public boolean isConnected() {
     return (clientSocket != null && !clientSocket.isClosed());
+  }
+
+  @Override
+  public boolean stopActiveExecution() {
+    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+  }
+
+  @Override
+  public boolean stopExecutions() {
+    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
   }
 }

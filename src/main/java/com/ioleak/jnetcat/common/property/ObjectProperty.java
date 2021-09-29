@@ -33,10 +33,9 @@ public class ObjectProperty<T>
         implements Observable {
 
   public final static String PROPERTYNAME = "object";
-  
+
   private final PropertyChangeSupport listenerManager = new PropertyChangeSupport(this);
   private T object;
-
 
   public ObjectProperty() {
     this(null);

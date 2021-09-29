@@ -25,35 +25,22 @@
  */
 package com.ioleak.jnetcat.server.generic;
 
-
+import com.ioleak.jnetcat.common.interfaces.ProcessAction;
 import com.ioleak.jnetcat.common.property.ListProperty;
-import com.ioleak.jnetcat.server.console.KeyCharReader;
 
-public abstract class Listener<T, S> {
+public abstract class Listener<T, S>
+        implements ProcessAction {
 
   private T serverType;
   private int port;
 
   private final ListProperty<S> connectionClients = new ListProperty<>();
-  private final KeyCharReader keyCharReader = new KeyCharReader(this::stopCurrentClient, this::stopServer);
-  private final Thread keyCharReaderThread = new Thread(keyCharReader);
 
   public abstract void startServer();
-  public abstract boolean stopServer();
-  public abstract boolean stopCurrentClient();
 
   public Listener(T serverType, int port) {
     setServerType(serverType);
     setPort(port);
-  }
-
-  public final void startCharReaderThread() {
-    if(!keyCharReaderThread.isAlive())
-      keyCharReaderThread.start();
-  }
-
-  public final void stopCharReaderThread() {
-    keyCharReaderThread.interrupt();
   }
 
   public final void setServerType(T serverType) {

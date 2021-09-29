@@ -40,7 +40,7 @@ public class TCPServer
 
   private ServerSocket serverSocket;
   private boolean stopServerHitKey = false;
-  
+
   public TCPServer(ServerParametersTCP serverParametersTCP) {
     this(serverParametersTCP.getServerType(), serverParametersTCP.getPort());
   }
@@ -54,11 +54,9 @@ public class TCPServer
     Logging.getLogger().info(String.format("Listening on port %d", getPort()));
     Logging.getLogger().info(String.format("Server act as a server: %s", getServerType().toString()));
 
-    startCharReaderThread();
-
     try {
       serverSocket = new ServerSocket(getPort());
- 
+
       while (!stopServerHitKey && !Thread.currentThread().isInterrupted()) {
 
         try (Socket socket = serverSocket.accept()) {
@@ -68,28 +66,27 @@ public class TCPServer
           try {
             getServerType().getClient().startClient(socket);
           } catch (SocketException ex) {
-            System.out.println();
             Logging.getLogger().info(String.format("Socket failure: %s", ex.getMessage()));
           }
 
           Logging.getLogger().info(String.format("Connection closed on client %s", socket.getRemoteSocketAddress()));
         } catch (IOException ex) {
-          if (!stopServerHitKey)
+          if (!stopServerHitKey) {
             Logging.getLogger().info("Client connection error", ex);
-        } 
+          }
+        }
       }
     } catch (IOException ex) {
-      if (!stopServerHitKey)
+      if (!stopServerHitKey) {
         Logging.getLogger().info(String.format("Unable to start TCP listener"));
-    } finally {
-      // if we get here we'll be out of the JVM
+      }
     }
-    
-    Logging.getLogger().warn("Server not running ...");
+
+    Logging.getLogger().warn(String.format("Server closed on port %d", getPort()));
   }
 
   @Override
-  public boolean stopCurrentClient() {
+  public boolean stopActiveExecution() {
     boolean serverClosed = false;
 
     List<Socket> sockets = getConnectionClients();
@@ -114,15 +111,15 @@ public class TCPServer
 
     return serverClosed;
   }
-  
+
   @Override
-  public boolean stopServer() {
+  public boolean stopExecutions() {
     boolean closed = false;
     stopServerHitKey = true;
-    
+
     try {
       Logging.getLogger().info("Close server request received...");
-      
+
       if (serverSocket != null && !serverSocket.isClosed()) {
         serverSocket.close();
         closed = true;
@@ -130,7 +127,7 @@ public class TCPServer
     } catch (IOException ex) {
       Logging.getLogger().error("Unable to close", ex);
     }
-    
+
     return closed;
   }
 }

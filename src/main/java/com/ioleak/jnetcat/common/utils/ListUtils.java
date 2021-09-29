@@ -33,7 +33,8 @@ import java.util.Set;
 
 public class ListUtils {
 
-  private ListUtils() {}
+  private ListUtils() {
+  }
 
   public static <T> List<T> union(Collection<? extends T> left, Collection<? extends T> right) {
     Set<T> set = new HashSet<>();

@@ -23,48 +23,45 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.ioleak.jnetcat.server;
+package com.ioleak.jnetcat.common;
 
-import com.ioleak.jnetcat.server.tcp.TCPClientConnection;
-import com.ioleak.jnetcat.server.tcp.TCPServerType;
-import com.ioleak.jnetcat.server.tcp.implement.Echo;
-import com.ioleak.jnetcat.server.tcp.implement.Proxy;
-import com.ioleak.jnetcat.server.udp.UDPClientConnection;
-import com.ioleak.jnetcat.server.udp.UDPServerType;
-import com.ioleak.jnetcat.server.udp.implement.Quote;
+import java.io.File;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.util.TimeZone;
+import java.util.TimerTask;
+import java.util.function.Function;
 
-public class ClientConnectionFactory {
+public class FileWatcher
+        extends TimerTask {
 
-  public static TCPClientConnection createClientConnectionTCP(TCPServerType tcpServerType) {
-    TCPClientConnection server = null;
+  private final File watchFile;
+  private final Function<File, Boolean> executeOnChange;
 
-    switch (TCPServerType.valueOf(tcpServerType.name())) {
-      case BASIC:
-        server = new com.ioleak.jnetcat.server.tcp.implement.Basic();
-        break;
-      case ECHO:
-        server = new Echo();
-        break;
-      case PROXY:
-        server = new Proxy();
-        break;
+  private long timestampLastModified;
+
+  public FileWatcher(File file, Function<File, Boolean> method) {
+    this.watchFile = file;
+    this.timestampLastModified = file.lastModified();
+    this.executeOnChange = method;
+
+    LocalDateTime triggerTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(timestampLastModified),
+                                                        TimeZone.getDefault().toZoneId());
+
+    if (!watchFile.exists()) {
+      Logging.getLogger().warn(String.format("Cannot watch for file (%s) modification: file doesn't exists", watchFile.getAbsolutePath()));
+    } else {
+      Logging.getLogger().info(String.format("Watching file (%s) for modification (%s)", file.getAbsolutePath(), triggerTime));
     }
-
-    return server;
   }
 
-  public static UDPClientConnection createClientConnectionUDP(UDPServerType udpServerType) {
-    UDPClientConnection server = null;
+  @Override
+  public final void run() {
+    long timestampCurrent = watchFile.lastModified();
 
-    switch (UDPServerType.valueOf(udpServerType.name())) {
-      case BASIC:
-        server = new com.ioleak.jnetcat.server.udp.implement.Basic();
-        break;
-      case QUOTE:
-        server = new Quote();
-        break;
+    if (timestampLastModified != timestampCurrent) {
+      timestampLastModified = timestampCurrent;
+      executeOnChange.apply(watchFile);
     }
-
-    return server;
   }
 }

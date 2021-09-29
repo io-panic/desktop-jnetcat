@@ -38,7 +38,7 @@ public class ListProperty<T>
         implements List<T>, Observable {
 
   public final static String PROPERTYNAME = "list";
-  
+
   private final PropertyChangeSupport listenerManager = new PropertyChangeSupport(this);
   private final List<T> observedList;
 
@@ -86,7 +86,7 @@ public class ListProperty<T>
 
     boolean added = observedList.add(object);
     listenerManager.firePropertyChange(event);
- 
+
     return added;
   }
 
@@ -123,7 +123,7 @@ public class ListProperty<T>
 
     boolean modified = observedList.addAll(pos, collection);
     listenerManager.firePropertyChange(event);
- 
+
     return modified;
   }
 

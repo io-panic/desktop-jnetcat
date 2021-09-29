@@ -25,9 +25,6 @@
  */
 package com.ioleak.jnetcat.client;
 
-import com.ioleak.jnetcat.common.Logging;
-import com.ioleak.jnetcat.options.startup.ClientParametersUDP;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -36,7 +33,12 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketTimeoutException;
 
-public class UDPClient {
+import com.ioleak.jnetcat.common.Logging;
+import com.ioleak.jnetcat.common.interfaces.ProcessAction;
+import com.ioleak.jnetcat.options.startup.ClientParametersUDP;
+
+public class UDPClient
+        implements ProcessAction {
 
   private DatagramSocket clientSocket;
   private PrintWriter out;
@@ -96,5 +98,15 @@ public class UDPClient {
     UDPClient udpConnect = new UDPClient("djxmmx.net", 17);
     udpConnect.open();
     udpConnect.read();
+  }
+
+  @Override
+  public boolean stopActiveExecution() {
+    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+  }
+
+  @Override
+  public boolean stopExecutions() {
+    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
   }
 }

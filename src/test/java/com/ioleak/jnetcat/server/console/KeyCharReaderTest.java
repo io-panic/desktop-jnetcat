@@ -44,62 +44,59 @@ public class KeyCharReaderTest {
 
   private PropertyChangeEvent event;
   private KeyCharReader keyCharReader;
-  
+
   private boolean stopped = false;
   private StringBuilder stringEventReceived;
-  private Thread thread;
-  
+
   private boolean hitKeyS = false;
   private boolean hitKeyQ = false;
-  
+
   @BeforeAll
   public void setUpStreams() {
     //System.setIn(inContent);
     //System.setErr(new PrintStream(errContent));
   }
-  
+
   @BeforeEach
   public void initPropertyListener() {
     keyCharReader = new KeyCharReader(this::hitKeyS, this::hitKeyQ);
     stringEventReceived = new StringBuilder();
-    
-    thread = new Thread(keyCharReader);
+
     keyCharReader.addListener((PropertyChangeEvent propertyChangeEvent) -> {
       this.event = propertyChangeEvent;
       stringEventReceived.append(propertyChangeEvent.getNewValue());
     });
-    
-    
+
     event = null;
   }
-  
+
   @Test
   public void readChar_HitKey_FirePropertyChange() throws IOException, InterruptedException {
     System.setIn(new ByteArrayInputStream("abcd TesT #1 *?".getBytes()));
     keyCharReader.readChar();
 
-      assertTrue(event != null);
-      assertEquals("abcd TesT #1 *?", stringEventReceived.toString());
+    assertTrue(event != null);
+    assertEquals("abcd TesT #1 *?", stringEventReceived.toString());
   }
-  
+
   @Test
   public void readChar_HitKeyQ_FunctionExecuted() throws IOException, InterruptedException {
     System.setIn(new ByteArrayInputStream("q".getBytes()));
     keyCharReader.readChar();
- 
-      assertTrue(event != null);
-      assertEquals("q", stringEventReceived.toString());
-      assertTrue(hitKeyQ);
+
+    assertTrue(event != null);
+    assertEquals("q", stringEventReceived.toString());
+    assertTrue(hitKeyQ);
   }
- 
+
   @Test
   public void readChar_HitKeyS_FunctionExecuted() throws IOException, InterruptedException {
     System.setIn(new ByteArrayInputStream("s".getBytes()));
     keyCharReader.readChar();
- 
-      assertTrue(event != null);
-      assertEquals("s", stringEventReceived.toString());
-      assertTrue(hitKeyS);
+
+    assertTrue(event != null);
+    assertEquals("s", stringEventReceived.toString());
+    assertTrue(hitKeyS);
   }
 
   @Test
@@ -107,12 +104,12 @@ public class KeyCharReaderTest {
     System.setIn(new ByteArrayInputStream("k".getBytes()));
     assertThrows(HitKeyCloseCharReaderException.class, () -> keyCharReader.readChar());
   }
-          
+
   private boolean hitKeyS() {
     hitKeyS = true;
     return hitKeyS;
   }
-  
+
   private boolean hitKeyQ() {
     hitKeyQ = true;
     return hitKeyQ;

@@ -39,8 +39,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -80,7 +78,7 @@ public class JsonUtils {
         object = clazz.getDeclaredConstructor().newInstance();
       } catch (NoSuchMethodException | SecurityException | InstantiationException
               | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
-        Logger.getLogger(JsonUtils.class.getName()).log(Level.SEVERE, null, ex);
+        Logging.getLogger().error("Unable to start a new instance, invalid JSON?", ex);
       }
     } else {
       try {
@@ -94,11 +92,24 @@ public class JsonUtils {
   }
 
   public static String loadJsonFileToString(String relativePathToFile) {
-    Class clazz = JsonUtils.class;
-    URL pathToFile = getRelativePath(relativePathToFile, clazz);
     String jsonContent = "";
 
-    try(InputStream inputStream = new FileInputStream(new File(pathToFile.toURI()))) {
+    Class clazz = JsonUtils.class;
+    URL pathToFile = getRelativePath(relativePathToFile, clazz);
+
+    try {
+      jsonContent = loadJsonFileToString(new File(pathToFile.toURI()));
+    } catch (URISyntaxException ex) {
+      Logging.getLogger().error("Cannot read file", ex);
+    }
+
+    return jsonContent;
+  }
+
+  public static String loadJsonFileToString(File jsonFile) {
+    String jsonContent = "";
+
+    try (InputStream inputStream = new FileInputStream(jsonFile)) {
       ByteArrayOutputStream result = new ByteArrayOutputStream();
 
       byte[] buffer = new byte[1024];
@@ -107,7 +118,7 @@ public class JsonUtils {
       }
 
       jsonContent = result.toString("UTF-8");
-    } catch (URISyntaxException | IOException ex) {
+    } catch (IOException ex) {
       Logging.getLogger().error("Cannot read file", ex);
     }
 
@@ -115,8 +126,8 @@ public class JsonUtils {
   }
 
   public static Path saveJsonToFile(String relativePathToFile, String jsonData) {
-    Path fileSavedPath= null;
-    
+    Path fileSavedPath = null;
+
     try {
       URL pathToFile = getRelativePath(relativePathToFile, JsonUtils.class);
       createDirectories(pathToFile);
@@ -127,11 +138,11 @@ public class JsonUtils {
     } catch (URISyntaxException | IOException ex) {
       Logging.getLogger().error(String.format("Unable to save JSON into file %s", relativePathToFile), ex);
     }
-    
+
     return fileSavedPath;
   }
 
-  private static URL getRelativePath(String relativePathToFile, Class clazz) {
+  public static URL getRelativePath(String relativePathToFile, Class clazz) {
     ClassLoader classloader = Thread.currentThread().getContextClassLoader();
 
     URL url = classloader.getResource(relativePathToFile);

@@ -34,15 +34,15 @@ import com.ioleak.jnetcat.common.Logging;
 import com.ioleak.jnetcat.common.property.Observable;
 
 public class KeyCharReader
-        implements Runnable, Observable {
+        implements Observable {
 
   private final PropertyChangeSupport listenerManager = new PropertyChangeSupport(this);
   private static final String THREAD_FORMAT_NAME = "Thread-%s";
   private static final int WAIT_DELAY_NEXT_CHAR_MS = 100;
-  
+
   private Supplier<Boolean> actionOnKeyS;
   private Supplier<Boolean> actionOnKeyQ;
-    
+
   private boolean keyboardHitStop = false;
   private boolean keyboardHitQuit = false;
 
@@ -55,20 +55,20 @@ public class KeyCharReader
     this.actionOnKeyQ = actionOnKeyQ;
   }
 
-  @Override
   public void run() {
-    Thread.currentThread().setName(String.format(THREAD_FORMAT_NAME, getClass().getSimpleName()));
+    boolean exceptionThrown = false;
+
     showInfo();
-    
-    while (!Thread.currentThread().isInterrupted()) {
+
+    while (!Thread.currentThread().isInterrupted() && !exceptionThrown) {
       try {
         readChar();
         Thread.sleep(WAIT_DELAY_NEXT_CHAR_MS);
       } catch (InterruptedException ex) {
         Logging.getLogger().error("KeyCharReader interrupted", ex);
       } catch (HitKeyCloseCharReaderException ex) {
-        //Thread.currentThread().interrupt();
-        Logging.getLogger().error(String.format("Thread will exit: %s", ex.getMessage()));
+        exceptionThrown = true;
+        Logging.getLogger().warn(String.format("Kill command received: %s", ex.getMessage()));
       }
     }
 
@@ -77,16 +77,16 @@ public class KeyCharReader
 
   public void showInfo() {
     Logging.getLogger().info("Hit key 'k' to kill this key listener");
-    
+
     if (this.actionOnKeyS != null) {
       Logging.getLogger().info("Hit key 's' to stop an established connection");
     }
-    
+
     if (this.actionOnKeyQ != null) {
       Logging.getLogger().info("Hit key 'q' to close this server");
     }
   }
-    
+
   public boolean readChar() {
     boolean charValid = true;
 
@@ -110,7 +110,8 @@ public class KeyCharReader
               keyboardHitStop = actionOnKeyS.get();
             } else {
               Logging.getLogger().warn("No action is defined as a stop (s) action. No action is taken");
-            } break;
+            }
+            break;
           default:
             break;
         }
@@ -123,7 +124,7 @@ public class KeyCharReader
     } catch (IOException ex) {
       Logging.getLogger().error(String.format("Unable to read char from keyboard: %s", ex.getMessage()));
     }
-    
+
     return charValid;
   }
 
@@ -134,7 +135,7 @@ public class KeyCharReader
   public boolean isKeyQuitPressed() {
     return keyboardHitQuit;
   }
-    
+
   @Override
   public void addListener(PropertyChangeListener listener) {
     listenerManager.addPropertyChangeListener(listener);

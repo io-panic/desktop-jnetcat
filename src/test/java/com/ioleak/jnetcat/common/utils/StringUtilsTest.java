@@ -49,7 +49,7 @@ public class StringUtilsTest {
     assertEquals("0A", StringUtils.toHexWithSpaceSeparator("\n"));
     assertEquals("0A 20 31 31", StringUtils.toHexWithSpaceSeparator("\n 11"));
   }
-  
+
   @Test
   public void toStringWithLineSeparator_NullValue_Empty() {
     assertTrue(StringUtils.toStringWithLineSeparator(null).isEmpty());
@@ -65,9 +65,9 @@ public class StringUtilsTest {
     String stringToSplit = "XX012345012345012345012345012345012345012345012345XX234501234501234501234501234501234501234501234501XX2345012345012345012345 0123450123450123450123450XX12345";
 
     assertEquals("XX012345012345012345012345012345012345012345012345\n"
-            + "XX234501234501234501234501234501234501234501234501\n"
-            + "XX2345012345012345012345 0123450123450123450123450\n"
-            + "XX12345", StringUtils.toStringWithLineSeparator(stringToSplit));
+                 + "XX234501234501234501234501234501234501234501234501\n"
+                 + "XX2345012345012345012345 0123450123450123450123450\n"
+                 + "XX12345", StringUtils.toStringWithLineSeparator(stringToSplit));
   }
 
   @Test
