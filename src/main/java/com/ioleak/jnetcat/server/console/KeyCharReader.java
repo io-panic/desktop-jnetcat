@@ -94,8 +94,8 @@ public class KeyCharReader
       while (charValid) {
         char key = (char) System.in.read();
         charValid = (key != 65535 && key != -1);
-
-        switch (key) {
+        
+        switch (Character.toLowerCase(key)) {
           case 'k':
             throw new HitKeyCloseCharReaderException("Exit program: k key used");
           case 'q':

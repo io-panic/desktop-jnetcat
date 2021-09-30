@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.net.SocketException;
 
 import com.ioleak.jnetcat.common.Logging;
 import com.ioleak.jnetcat.common.interfaces.ProcessAction;
@@ -79,8 +80,13 @@ public class TCPClient
     String resp = null;
     try {
       resp = in.readLine();
+    } catch (SocketException ex) {
+      Logging.getLogger().error(String.format("Unable to send a TCP message on %s:%d", ip, port));
+      Logging.getLogger().error(String.format("Socket error message: %s", ex.getMessage()));
     } catch (IOException ex) {
       Logging.getLogger().error(String.format("Unable to send a TCP message on %s:%d", ip, port), ex);
+    } finally {
+      close();
     }
 
     return resp;

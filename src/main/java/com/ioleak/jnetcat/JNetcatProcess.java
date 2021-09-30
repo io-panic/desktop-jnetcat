@@ -35,69 +35,83 @@ import com.ioleak.jnetcat.options.JNetcatParameters;
 import com.ioleak.jnetcat.server.tcp.TCPServer;
 import com.ioleak.jnetcat.server.udp.UDPServer;
 
-public class JNetcatProcess
+public enum JNetcatProcess
         implements Runnable {
 
-  private final File jsonParamsFile;
-  private int resultExecution = -1;
+  JNETCATPROCESS;
 
-  private ProcessAction threadStop;
-  private boolean executionInProgress = false;
+  private File jsonParamsFile;
+  private JNetcatProcessResult resultExecution = JNetcatProcessResult.UNKNOWN;
 
-  public JNetcatProcess(File jsonParamsFile) {
+  private ProcessAction processAction;
+
+  private JNetcatProcess() { }
+
+  public void setJsonParamsFile(File jsonParamsFile) {
     this.jsonParamsFile = jsonParamsFile;
   }
 
+  @Override
   public void run() {
-    if (executionInProgress) {
-      throw new JNetcatAlreadyRunningException("An execution is already running");
+    run(getParametersFromFile());
+  }
+
+  public void run(JNetcatParameters params) {
+    if (getResultExecution() == JNetcatProcessResult.IN_PROGRESS) {
+      throw new JNetcatProcessRunningException("An execution is already running");
     }
-
-    executionInProgress = true;
-    resultExecution = -1;
-    int returnCode = 0;
-
-    String jsonData = JsonUtils.loadJsonFileToString(jsonParamsFile);
-    JNetcatParameters params = JsonUtils.jsonToObject(jsonData, JNetcatParameters.class);
+    
+    resultExecution = JNetcatProcessResult.IN_PROGRESS;
 
     if (params != null) {
       if (params.isStartAsServer()) {
         if (params.isUseProtocolTCP()) {
           TCPServer tcpListener = new TCPServer(params.getServerParametersTCP());
-          threadStop = tcpListener;
+          processAction = tcpListener;
           tcpListener.startServer();
         } else {
           UDPServer udpListener = new UDPServer(params.getServerParametersUDP());
-          threadStop = udpListener;
+          processAction = udpListener;
           udpListener.startServer();
         }
       } else {
         if (params.isUseProtocolTCP()) {
           TCPClient tcpClient = new TCPClient(params.getClientParametersTCP());
-          threadStop = tcpClient;
+          processAction = tcpClient;
           tcpClient.open();
 
           if (!tcpClient.isConnected()) {
-            returnCode = 1;
+            resultExecution = JNetcatProcessResult.CONNECTION_FAILED;
           }
         } else {
           UDPClient udpConnect = new UDPClient(params.getClientParametersUDP());
-          threadStop = udpConnect;
+          processAction = udpConnect;
           udpConnect.open();
         }
       }
     } else {
-      returnCode = 1;
+      resultExecution = JNetcatProcessResult.ERROR;
     }
+    
+    resultExecution = resultExecution == JNetcatProcessResult.IN_PROGRESS ? 
+                      JNetcatProcessResult.SUCCESS : resultExecution;
+  }
 
-    executionInProgress = false;
-    resultExecution = returnCode;
+  private JNetcatParameters getParametersFromFile() {
+    if (jsonParamsFile == null) {
+      throw new JNetcatProcessFileNotSetException("File parameters is not set on the object");
+    }
+        
+    String jsonData = JsonUtils.loadJsonFileToString(jsonParamsFile);
+    JNetcatParameters params = JsonUtils.jsonToObject(jsonData, JNetcatParameters.class);
+
+    return params;
   }
 
   public boolean stopExecutions() {
     boolean haltedSuccess = false;
-    if (threadStop != null) {
-      haltedSuccess = threadStop.stopExecutions();
+    if (processAction != null) {
+      haltedSuccess = processAction.stopExecutions();
     }
 
     return haltedSuccess;
@@ -105,14 +119,14 @@ public class JNetcatProcess
 
   public boolean stopActiveExecution() {
     boolean haltedSuccess = false;
-    if (threadStop != null) {
-      haltedSuccess = threadStop.stopActiveExecution();
+    if (processAction != null) {
+      haltedSuccess = processAction.stopActiveExecution();
     }
 
     return haltedSuccess;
   }
 
-  public int getResultExecution() {
+  public JNetcatProcessResult getResultExecution() {
     return resultExecution;
   }
 }

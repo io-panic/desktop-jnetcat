@@ -23,12 +23,41 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+
 package com.ioleak.jnetcat;
 
-public class JNetcatAlreadyRunningException
-        extends RuntimeException {
+import com.ioleak.jnetcat.common.BaseEnum;
 
-  public JNetcatAlreadyRunningException(String msg) {
-    super(msg);
+
+public enum JNetcatProcessResult
+  implements BaseEnum {
+
+  UNKNOWN(-1, "Value unknown: no execution"),
+  SUCCESS(0, "Process executed with success"),
+  CONNECTION_FAILED(1, "Connection failed"),
+  ERROR(2, "A fatal error occured"),
+  IN_PROGRESS(3, "Execution in progress");
+
+  private int code;
+  private String msg;
+
+  private JNetcatProcessResult(int code, String msg) {
+    this.code = code;
+    this.msg = msg;
+  }
+
+  @Override
+  public int getCode() {
+    return code;
+  }
+
+  @Override
+  public String getDetails(Object... args) {
+    return msg;
+  }
+
+  @Override
+  public String toString() {
+    return String.format("%d [%s]", getCode(), getDetails());
   }
 }

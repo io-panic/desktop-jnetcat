@@ -52,20 +52,24 @@ public class JNetcat {
       jsonParameters = cliArgs.switchValue("-f");
     }
 
+    Logging.getLogger().info(String.format("Using parameter file: %s", jsonParameters));
     URL url = JsonUtils.getRelativePath(jsonParameters, JNetcat.class);
 
     try {
       File jsonFile = new File(url.toURI());
-
+      Logging.getLogger().info(String.format("Parameter file absolute path: %s", jsonFile.getAbsolutePath()));
+      
       FileWatcher fileWatcher = new FileWatcher(jsonFile, JNetcat::paramsHotReload);
       Timer timer = new Timer();
       timer.schedule(fileWatcher, new Date(), 1000);
 
-      jnetcatRun = new JNetcatProcess(jsonFile);
+      jnetcatRun = JNetcatProcess.JNETCATPROCESS;
+      jnetcatRun.setJsonParamsFile(jsonFile);
+
       jnetcatThread = new Thread(jnetcatRun);
       jnetcatThread.start();
 
-      KeyCharReader keyCharReader = new KeyCharReader(jnetcatRun::stopActiveExecution, jnetcatRun::stopExecutions);
+      KeyCharReader keyCharReader = new KeyCharReader(jnetcatRun::stopActiveExecution, JNetcat::stopExecutionsAndExit);
       keyCharReader.run();
 
       final CountDownLatch latch = new CountDownLatch(1);
@@ -81,6 +85,15 @@ public class JNetcat {
     System.exit(returnCode);
   }
 
+  private static boolean stopExecutionsAndExit() {
+    boolean executionStopped = jnetcatRun.stopExecutions();
+    if (executionStopped) {
+      System.exit(0);
+    }
+
+    return executionStopped;
+  }
+  
   private static boolean paramsHotReload(File jsonParamsFile) {
     Logging.getLogger().info(String.format("File (%s) modified: trying to hot reload...", jsonParamsFile.getAbsolutePath()));
 

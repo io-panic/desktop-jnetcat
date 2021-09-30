@@ -28,6 +28,7 @@ package com.ioleak.jnetcat.common.utils;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
@@ -84,7 +85,7 @@ public class JsonUtils {
       try {
         object = (T) objectMapper.readValue(jsonData, clazz);
       } catch (JsonProcessingException ex) {
-        Logging.getLogger().error("Unable to parse JSON data", ex);
+        Logging.getLogger().error(String.format("Unable to parse JSON data (msg: %s)", ex.getMessage()));
       }
     }
 
@@ -92,7 +93,7 @@ public class JsonUtils {
   }
 
   public static String loadJsonFileToString(String relativePathToFile) {
-    String jsonContent = "";
+    String jsonContent = JSON_EMPTY;
 
     Class clazz = JsonUtils.class;
     URL pathToFile = getRelativePath(relativePathToFile, clazz);
@@ -107,7 +108,7 @@ public class JsonUtils {
   }
 
   public static String loadJsonFileToString(File jsonFile) {
-    String jsonContent = "";
+    String jsonContent = JSON_EMPTY;
 
     try (InputStream inputStream = new FileInputStream(jsonFile)) {
       ByteArrayOutputStream result = new ByteArrayOutputStream();
@@ -118,8 +119,10 @@ public class JsonUtils {
       }
 
       jsonContent = result.toString("UTF-8");
+    } catch (FileNotFoundException ex) {
+      Logging.getLogger().error(String.format("File (%s) cannot be found", jsonFile.getAbsolutePath()));
     } catch (IOException ex) {
-      Logging.getLogger().error("Cannot read file", ex);
+      Logging.getLogger().error(String.format("An error occured while trying to open/read file: %s", jsonFile.getAbsolutePath()), ex);
     }
 
     return jsonContent;

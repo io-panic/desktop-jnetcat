@@ -23,43 +23,12 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.ioleak.jnetcat.server.tcp;
+package com.ioleak.jnetcat;
 
-import com.ioleak.jnetcat.common.BaseEnum;
-import com.ioleak.jnetcat.server.ClientConnectionFactory;
+public class JNetcatProcessRunningException
+        extends RuntimeException {
 
-public enum TCPServerType
-        implements BaseEnum {
-
-  UNKNOWN(0, "Unknown server type defined"),
-  BASIC(1, "(TCP) Listen only server"),
-  ECHO(2, "(TCP) Echo requests on the server"),
-  PROXY(3, "(TCP) Forward requests to another server");
-
-  private int code;
-  private String msg;
-
-  private TCPServerType(int code, String msg) {
-    this.code = code;
-    this.msg = msg;
-  }
-
-  @Override
-  public int getCode() {
-    return code;
-  }
-
-  @Override
-  public String getDetails(Object... args) {
-    return msg;
-  }
-
-  public TCPClientConnection getClient() {
-    return ClientConnectionFactory.createClientConnectionTCP(this);
-  }
-
-  @Override
-  public String toString() {
-    return String.format("%d [%s]", getCode(), getDetails());
+  public JNetcatProcessRunningException(String msg) {
+    super(msg);
   }
 }
