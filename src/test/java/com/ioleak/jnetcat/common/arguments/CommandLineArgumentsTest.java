@@ -25,6 +25,8 @@
  */
 package com.ioleak.jnetcat.common.arguments;
 
+import java.util.Arrays;
+
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -37,6 +39,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 public class CommandLineArgumentsTest {
 
+  @Test
+  public void newCommandLineArguments_NullValue_EmptyObject() {
+    CommandLineArguments cliArgs = new CommandLineArguments(null);
+    assertEquals(Arrays.asList(""), Arrays.asList(cliArgs.args()), "A null value should generate  an empty array");
+  }
+  
   @Test
   public void testValueMethods() {
     String[] theArgs = {"firstTarget", "-ha", "midTarget", "-conf", "file1.txt", "file2.txt", "-port", "122", "lastTarget1", "lastTarget2", "-bla"};

@@ -23,50 +23,17 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.ioleak.jnetcat.common.property;
+package com.ioleak.jnetcat;
 
-import java.beans.PropertyChangeEvent;
-
-import com.ioleak.jnetcat.common.utils.StringUtils;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
-public class ObjectPropertyTest {
-
-  private PropertyChangeEvent event;
-  private ObjectProperty<String> objectProperty;
-
-  @BeforeEach
-  public void initListProperty() {
-    objectProperty = new ObjectProperty<>();
-    objectProperty.addListener((PropertyChangeEvent propertyChangeEvent) -> {
-      this.event = propertyChangeEvent;
-    });
-
-    event = null;
-  }
+public class JNetcatTest {
 
   @Test
-  public void setObject_ValueToEmpty_ValueWithEventFired() {
-    objectProperty.set("One Value");
-
-    assertTrue(event != null);
-    assertTrue(StringUtils.isNullOrEmpty((String) event.getOldValue()));
-    assertEquals("One Value", event.getNewValue());
-    assertEquals("One Value", objectProperty.get());
-  }
-
-  @Test
-  public void setObject_ExistingPreviousValue_ValueWithEventFired() {
-    objectProperty.set("One Value");
-    objectProperty.set("New Value");
-
-    assertTrue(event != null);
-    assertEquals("One Value", event.getOldValue());
-    assertEquals("New Value", event.getNewValue());
-    assertEquals("New Value", objectProperty.get());
+  @Disabled("TODO")
+  public void startJNetcatMain() {
+    String[] args = null;
+    JNetcat.main(args);
   }
 }

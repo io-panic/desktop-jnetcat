@@ -80,7 +80,7 @@ public enum JNetcatProcess
           processAction = tcpClient;
           tcpClient.open();
 
-          if (!tcpClient.isConnected()) {
+          if (!tcpClient.connectedProperty().get()) {
             resultExecution = JNetcatProcessResult.CONNECTION_FAILED;
           }
         } else {

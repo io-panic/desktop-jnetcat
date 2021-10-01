@@ -58,26 +58,13 @@ public class JNetcat {
     try {
       File jsonFile = new File(url.toURI());
       Logging.getLogger().info(String.format("Parameter file absolute path: %s", jsonFile.getAbsolutePath()));
+
+      initJNetcatProcessRun(jsonFile);
+            
+      startThreadFileWatcher(jsonFile, 2500);
+      readKeyboardCharConsole();
       
-      FileWatcher fileWatcher = new FileWatcher(jsonFile, JNetcat::paramsHotReload);
-      Timer timer = new Timer();
-      timer.schedule(fileWatcher, new Date(), 1000);
-
-      jnetcatRun = JNetcatProcess.JNETCATPROCESS;
-      jnetcatRun.setJsonParamsFile(jsonFile);
-
-      jnetcatThread = new Thread(jnetcatRun);
-      jnetcatThread.start();
-
-      KeyCharReader keyCharReader = new KeyCharReader(jnetcatRun::stopActiveExecution, JNetcat::stopExecutionsAndExit);
-      keyCharReader.run();
-
-      final CountDownLatch latch = new CountDownLatch(1);
-      try {
-        latch.await();
-      } catch (InterruptedException ex) {
-        Logging.getLogger().error("Execution interrupted. Program will exit.", ex);
-      }
+      keepRunningIndefinitely();
     } catch (URISyntaxException ex) {
       Logging.getLogger().error("Cannot start execution, invalid URI", ex);
     }
@@ -85,17 +72,42 @@ public class JNetcat {
     System.exit(returnCode);
   }
 
-  private static boolean stopExecutionsAndExit() {
-    boolean executionStopped = jnetcatRun.stopExecutions();
-    if (executionStopped) {
-      System.exit(0);
-    }
-
-    return executionStopped;
+  private static void startThreadFileWatcher(File jsonFile, int delayMs) {
+    FileWatcher fileWatcher = new FileWatcher(jsonFile, JNetcat::paramsHotReload);
+    Timer timer = new Timer();
+    timer.schedule(fileWatcher, new Date(), delayMs);
   }
-  
-  private static boolean paramsHotReload(File jsonParamsFile) {
-    Logging.getLogger().info(String.format("File (%s) modified: trying to hot reload...", jsonParamsFile.getAbsolutePath()));
+
+  private static void initJNetcatProcessRun(File jsonFile) {
+    jnetcatRun = JNetcatProcess.JNETCATPROCESS;
+    jnetcatRun.setJsonParamsFile(jsonFile);
+  }
+
+  private static void readKeyboardCharConsole() {
+    KeyCharReader keyCharReader = new KeyCharReader(jnetcatRun::stopActiveExecution,
+                                                    () -> {
+                                                      boolean executionStopped = jnetcatRun.stopExecutions();
+                                                      if (executionStopped) {
+                                                        System.exit(0);
+                                                      }
+
+                                                      return executionStopped;
+                                                    });
+    keyCharReader.run();
+  }
+
+  private static void keepRunningIndefinitely() {
+    final CountDownLatch latch = new CountDownLatch(1);
+
+    try {
+      latch.await();
+    } catch (InterruptedException ex) {
+      Logging.getLogger().error("Execution interrupted. Program will exit.", ex);
+    }
+  }
+
+  private static void paramsHotReload(File jsonParamsFile) {
+    Logging.getLogger().info(String.format("File (%s) modified since last check - reloading", jsonParamsFile.getAbsolutePath()));
 
     if (jnetcatThread != null) {
       jnetcatRun.stopExecutions();
@@ -112,7 +124,5 @@ public class JNetcat {
 
     jnetcatThread = new Thread(jnetcatRun);
     jnetcatThread.start();
-
-    return true;
   }
 }

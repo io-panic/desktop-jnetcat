@@ -37,7 +37,7 @@ import java.util.TreeSet;
  */
 public class CommandLineArguments {
 
-  private String[] args = null;
+  private String[] args;
 
   private final Map<String, Integer> switchIndexes = new HashMap<String, Integer>();
   private final Set<Integer> takenIndexes = new TreeSet<Integer>();
@@ -47,7 +47,8 @@ public class CommandLineArguments {
   }
 
   public final void parse(String[] arguments) {
-    this.args = arguments;
+    this.args = arguments == null ? new String[] { "" } : arguments;
+
     //locate switches.
     switchIndexes.clear();
     takenIndexes.clear();

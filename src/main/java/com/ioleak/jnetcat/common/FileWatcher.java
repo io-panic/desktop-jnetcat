@@ -30,38 +30,41 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.TimeZone;
 import java.util.TimerTask;
-import java.util.function.Function;
+import java.util.function.Consumer;
 
 public class FileWatcher
         extends TimerTask {
 
   private final File watchFile;
-  private final Function<File, Boolean> executeOnChange;
+  private final Consumer<File> executeOnChange;
+  private long timestampLastModified = -1;
 
-  private long timestampLastModified;
-
-  public FileWatcher(File file, Function<File, Boolean> method) {
+  public FileWatcher(File file, Consumer<File> method) {
     this.watchFile = file;
-    this.timestampLastModified = file.lastModified();
     this.executeOnChange = method;
-
-    LocalDateTime triggerTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(timestampLastModified),
-                                                        TimeZone.getDefault().toZoneId());
 
     if (!watchFile.exists()) {
       Logging.getLogger().warn(String.format("Cannot watch for file (%s) modification: file doesn't exists", watchFile.getAbsolutePath()));
     } else {
-      Logging.getLogger().info(String.format("Watching file (%s) for modification (%s)", file.getAbsolutePath(), triggerTime));
+      Logging.getLogger().info(String.format("Watching file (%s) for modification (%s)", file.getAbsolutePath(), getLastModifiedTime()));
     }
   }
 
   @Override
   public final void run() {
-    long timestampCurrent = watchFile.lastModified();
+    Logging.getLogger().trace(String.format("FileWatcher - File: %s LastModified: %s", watchFile, getLastModifiedTime()));
 
-    if (timestampLastModified != timestampCurrent) {
-      timestampLastModified = timestampCurrent;
-      executeOnChange.apply(watchFile);
+    if (watchFile.exists()) {
+      long timestampCurrent = watchFile.lastModified();
+
+      if (timestampLastModified != timestampCurrent) {
+        timestampLastModified = timestampCurrent;
+        executeOnChange.accept(watchFile);
+      }
     }
+  }
+
+  private LocalDateTime getLastModifiedTime() {
+    return LocalDateTime.ofInstant(Instant.ofEpochMilli(timestampLastModified), TimeZone.getDefault().toZoneId());
   }
 }

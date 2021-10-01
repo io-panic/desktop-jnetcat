@@ -55,11 +55,11 @@ public class ObjectProperty<T>
     listenerManager.removePropertyChangeListener(listener);
   }
 
-  public T getObject() {
+  public T get() {
     return object;
   }
 
-  public void setObject(T object) {
+  public void set(T object) {
     if (isModified(object)) {
       PropertyChangeEvent event = new PropertyChangeEvent(this, PROPERTYNAME, this.object, object);
 

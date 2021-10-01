@@ -34,18 +34,20 @@ import java.net.SocketException;
 
 import com.ioleak.jnetcat.common.Logging;
 import com.ioleak.jnetcat.common.interfaces.ProcessAction;
+import com.ioleak.jnetcat.common.property.ObjectProperty;
 import com.ioleak.jnetcat.options.startup.ClientParametersTCP;
 
-public class TCPClient
+public class TCPClient 
         implements ProcessAction {
 
   private Socket clientSocket;
   private PrintWriter out;
   private BufferedReader in;
 
-  private String ip;
-  private int port;
-
+  private final String ip;
+  private final int port;
+  private final ObjectProperty<Boolean> connectedProperty = new ObjectProperty<>(false);
+  
   public TCPClient(ClientParametersTCP clientParametersTCP) {
     this(clientParametersTCP.getIp(), clientParametersTCP.getPort());
   }
@@ -57,7 +59,7 @@ public class TCPClient
 
   public TCPClient open() {
     try {
-      if (isConnected()) {
+      if (connectedProperty().get()) {
         Logging.getLogger().warn(String.format("TCP connection already open on %s:%d", ip, port));
       } else {
         Logging.getLogger().info(String.format("Trying to open a TCP connection [%s:%s]", ip, port));
@@ -70,6 +72,8 @@ public class TCPClient
       }
     } catch (IOException ex) {
       Logging.getLogger().error(String.format("Unable to open a TCP connection on %s:%d [%s]", ip, port, ex.getMessage()));
+    } finally {
+      updateConnectedProperty();
     }
 
     return this;
@@ -78,15 +82,18 @@ public class TCPClient
   public String sendMessage(String msg) {
     out.println(msg);
     String resp = null;
+    
     try {
       resp = in.readLine();
     } catch (SocketException ex) {
       Logging.getLogger().error(String.format("Unable to send a TCP message on %s:%d", ip, port));
       Logging.getLogger().error(String.format("Socket error message: %s", ex.getMessage()));
+      
+      close();
     } catch (IOException ex) {
       Logging.getLogger().error(String.format("Unable to send a TCP message on %s:%d", ip, port), ex);
     } finally {
-      close();
+      updateConnectedProperty();
     }
 
     return resp;
@@ -109,11 +116,13 @@ public class TCPClient
       Logging.getLogger().info(String.format("TCP connection closed on %s:%d", ip, port));
     } catch (IOException ex) {
       Logging.getLogger().error(String.format("An error occurred while closing connection on %s:%d", ip, port), ex);
+    } finally {
+      updateConnectedProperty();
     }
   }
 
-  public boolean isConnected() {
-    return (clientSocket != null && !clientSocket.isClosed());
+  public ObjectProperty<Boolean> connectedProperty() {
+    return connectedProperty;
   }
 
   @Override
@@ -124,5 +133,9 @@ public class TCPClient
   @Override
   public boolean stopExecutions() {
     throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+  }
+  
+  private void updateConnectedProperty() {
+    connectedProperty.set(clientSocket != null && clientSocket.isConnected() && !clientSocket.isClosed());
   }
 }

@@ -26,10 +26,12 @@
 package com.ioleak.jnetcat;
 
 import java.io.File;
+import java.util.function.BooleanSupplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.ioleak.jnetcat.client.TCPClient;
+import com.ioleak.jnetcat.common.Logging;
 import com.ioleak.jnetcat.options.JNetcatParameters;
 import com.ioleak.jnetcat.options.startup.ClientParametersTCP;
 import com.ioleak.jnetcat.options.startup.ServerParametersTCP;
@@ -51,7 +53,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @TestInstance(Lifecycle.PER_CLASS)
 public class JNetcatProcessTest {
 
-  private static final int MAX_THREAD_WAIT_MS = 10000;
+  private static final int THREAD_MAX_WAIT_MS = 10000;
+  private static final int THREAD_MIN_WAIT_MS = 100;
+  
   private static final int LISTEN_PORT = 41959;
 
   private JNetcatProcess jNetcatProcess;
@@ -63,18 +67,19 @@ public class JNetcatProcessTest {
   }
 
   @Test
-  public void jNetcatProcess_OneInstanceOnly_SameAddress() {
+  public void run_OneInstanceOnly_SameMemoryAddress() {
     JNetcatProcess jNetcatProcessLocal = JNetcatProcess.JNETCATPROCESS;
     assertEquals(jNetcatProcess, jNetcatProcessLocal);
   }
 
   @Test
-  public void jNetcatProcess_RunWithoutFileParams_ExceptionThrown() {
+  public void run_RunWithoutFileParams_ExceptionThrown() {
+    jNetcatProcess.setJsonParamsFile(null);
     assertThrows(JNetcatProcessFileNotSetException.class, () -> jNetcatProcess.run());
   }
 
   @Test
-  public void jNetcatProcess_RunWithInvalidFile_ErrorCode() {
+  public void run_RunWithInvalidFile_ErrorCode() {
     jNetcatProcess.setJsonParamsFile(new File("test/FileDontExists.json"));
     jNetcatProcess.run();
 
@@ -83,7 +88,7 @@ public class JNetcatProcessTest {
 
   @Test
   @Order(1)
-  public void jNetcatProcess_RunWithoInvalidFile_ExecutionInProgressCode() {
+  public void run_ThreadOrder1_ExecutionInProgressCode() {
     JNetcatParameters jNetcatParameters = new JNetcatParameters.ParametersBuilder(true, true)
             .withServerParametersTCP(new ServerParametersTCP.ParametersBuilder(LISTEN_PORT).withServerType(TCPServerType.ECHO).build()).build();
 
@@ -95,24 +100,14 @@ public class JNetcatProcessTest {
     };
 
     jNetcatThread.start();
-
-    int i = 0;
-    while (i <= 10 && jNetcatProcess.getResultExecution() != JNetcatProcessResult.IN_PROGRESS) {     
-      try {
-        Thread.sleep(250);
-      } catch (InterruptedException ex) {
-        Logger.getLogger(JNetcatProcessTest.class.getName()).log(Level.SEVERE, null, ex);
-      }
-      
-      i++;
-    }
+    waitForThread(() ->  jNetcatProcess.getResultExecution() != JNetcatProcessResult.IN_PROGRESS);
 
     assertEquals(JNetcatProcessResult.IN_PROGRESS, jNetcatProcess.getResultExecution());
   }
 
   @Test
   @Order(2)
-  public void jNetcatProcess_RunWithoInvalidFile_AlreadyRunningCode() {
+  public void run_ThreadOrder2_AlreadyRunningCode() {
     JNetcatParameters jNetcatParameters = new JNetcatParameters.ParametersBuilder(true, true)
             .withServerParametersTCP(new ServerParametersTCP.ParametersBuilder(8080).build()).build();
 
@@ -121,52 +116,45 @@ public class JNetcatProcessTest {
 
   @Test
   @Order(3)
-  public void jNetcatProcess_StopActiveExecution_SuccessCode() {
+  public void stopActiveExecution_ThreadOrder3_KeepInProgressStatus() {
     final ClientParametersTCP clientParametersTCP = new ClientParametersTCP.ParametersBuilder("127.0.0.1", LISTEN_PORT).build();
     final TCPClient tcpClient = new TCPClient(clientParametersTCP);
-
-    Thread tcpConnect = new Thread() {
-      public void run() {
-        tcpClient.open();
-      }
-    };
-
-    tcpConnect.start();
-
-    int i = 0;
-    while (i <= 10 && !tcpClient.isConnected()) {
-      try {
-        Thread.sleep(250);
-      } catch (InterruptedException ex) {
-        Logger.getLogger(JNetcatProcessTest.class.getName()).log(Level.SEVERE, null, ex);
-      }
-      
-      i++;
-    }
-    assertTrue(tcpClient.isConnected());
-    jNetcatProcess.stopActiveExecution();
-
-    tcpClient.sendMessage("Test message");
-    try {
-      tcpConnect.join();
-    } catch (InterruptedException ex) {
-      Logger.getLogger(JNetcatProcessTest.class.getName()).log(Level.SEVERE, null, ex);
-    }
     
-    assertFalse(tcpClient.isConnected());
+    tcpClient.open();
+    assertTrue(tcpClient.connectedProperty().get());
+    
+    jNetcatProcess.stopActiveExecution();
+    tcpClient.sendMessage("Test message");
+ 
+    assertFalse(tcpClient.connectedProperty().get());
+    assertEquals(JNetcatProcessResult.IN_PROGRESS, jNetcatProcess.getResultExecution());
   }
 
   @Test
   @Order(4)
-  public void jNetcatProcess_StopExecutions_SuccessCode() {
+  public void stopExecutions_ThreadOrder4_SuccessCode() {
     jNetcatProcess.stopExecutions();
 
     try {
-      jNetcatThread.join(MAX_THREAD_WAIT_MS);
+      jNetcatThread.join(THREAD_MAX_WAIT_MS);
     } catch (InterruptedException ex) {
       Logger.getLogger(JNetcatProcessTest.class.getName()).log(Level.SEVERE, null, ex);
     }
 
     assertEquals(JNetcatProcessResult.SUCCESS, jNetcatProcess.getResultExecution());
+  }
+  
+  private void waitForThread(BooleanSupplier conditionToWaitFor) {
+    int i = 0;
+    
+    while (i <= 10 && conditionToWaitFor.getAsBoolean()) {
+      try {
+        Thread.sleep(THREAD_MIN_WAIT_MS);
+      } catch (InterruptedException ex) {
+        Logging.getLogger().error("Interrupted exception", ex);
+      }
+      
+      i++;
+    }
   }
 }

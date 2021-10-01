@@ -87,7 +87,7 @@ public class TCPServer
 
   @Override
   public boolean stopActiveExecution() {
-    boolean serverClosed = false;
+    boolean clentClosed = false;
 
     List<Socket> sockets = getConnectionClients();
     for (Socket socket : sockets) {
@@ -96,7 +96,7 @@ public class TCPServer
 
         try {
           socket.close();
-          serverClosed = true;
+          clentClosed = true;
 
           Logging.getLogger().error("Client connection closed successfully");
         } catch (IOException ex) {
@@ -105,11 +105,11 @@ public class TCPServer
       }
     }
 
-    if (!serverClosed) {
+    if (!clentClosed) {
       Logging.getLogger().warn("No client is currently connected. Please wait for a connection to be established");
     }
 
-    return serverClosed;
+    return clentClosed;
   }
 
   @Override

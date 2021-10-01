@@ -88,4 +88,19 @@ public class StringUtilsTest {
     assertFalse(StringUtils.isStringContainsIPv4("-25.25.25.25"));
     assertFalse(StringUtils.isStringContainsIPv4("255:255:255:255"));
   }
+
+  @Test
+  public void generateRandomString_LengthOutOfBound_AsExpected() {
+    assertTrue(StringUtils.generateRandomString(-64).length() == 0);   
+    assertTrue(StringUtils.generateRandomString(-10).length() == 0);    
+    assertTrue(StringUtils.generateRandomString(0).length() == 0);
+  }
+  
+  @Test
+  public void generateRandomString_LengthVaria_AsExpected() {
+    assertTrue(StringUtils.generateRandomString(10).length() == 10);
+    assertTrue(StringUtils.generateRandomString(1).length() == 1);
+    assertTrue(StringUtils.generateRandomString(15).length() == 15);
+    assertTrue(StringUtils.generateRandomString(128).length() == 128);
+  }
 }
