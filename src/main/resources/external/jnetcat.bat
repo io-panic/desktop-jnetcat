@@ -12,4 +12,4 @@ SET JAVA=%JAVA_HOME%\bin\java.exe
 
 CD /D %~dp0
 
-CALL %JAVA% -Dlog4j2.properties=%LOG4J2XML% -jar %JAR% -f %CONFIGFILE%
+CALL %JAVA% -Dlog4j2.properties=%LOG4J2XML% -jar %JAR% -f %CONFIGFILE% %*

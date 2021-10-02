@@ -30,11 +30,11 @@ public interface BaseEnum {
   public int getCode();
 
   public default String getDetails() {
-    return getDetails(new Object[]{});
+    return getDetails(new Object[] {});
   }
 
   public default String getDetails(String arg) {
-    return getDetails(new Object[]{arg});
+    return getDetails(new Object[] {arg});
   }
 
   public String getDetails(Object... args);

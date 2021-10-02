@@ -34,10 +34,10 @@ import java.net.SocketException;
 
 import com.ioleak.jnetcat.common.Logging;
 import com.ioleak.jnetcat.common.interfaces.ProcessAction;
-import com.ioleak.jnetcat.common.property.ObjectProperty;
+import com.ioleak.jnetcat.common.properties.ObjectProperty;
 import com.ioleak.jnetcat.options.startup.ClientParametersTCP;
 
-public class TCPClient 
+public class TCPClient
         implements ProcessAction {
 
   private Socket clientSocket;
@@ -47,7 +47,7 @@ public class TCPClient
   private final String ip;
   private final int port;
   private final ObjectProperty<Boolean> connectedProperty = new ObjectProperty<>(false);
-  
+
   public TCPClient(ClientParametersTCP clientParametersTCP) {
     this(clientParametersTCP.getIp(), clientParametersTCP.getPort());
   }
@@ -82,13 +82,13 @@ public class TCPClient
   public String sendMessage(String msg) {
     out.println(msg);
     String resp = null;
-    
+
     try {
       resp = in.readLine();
     } catch (SocketException ex) {
       Logging.getLogger().error(String.format("Unable to send a TCP message on %s:%d", ip, port));
       Logging.getLogger().error(String.format("Socket error message: %s", ex.getMessage()));
-      
+
       close();
     } catch (IOException ex) {
       Logging.getLogger().error(String.format("Unable to send a TCP message on %s:%d", ip, port), ex);
@@ -134,7 +134,7 @@ public class TCPClient
   public boolean stopExecutions() {
     throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
   }
-  
+
   private void updateConnectedProperty() {
     connectedProperty.set(clientSocket != null && clientSocket.isConnected() && !clientSocket.isClosed());
   }

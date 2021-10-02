@@ -26,7 +26,7 @@
 package com.ioleak.jnetcat.server.generic;
 
 import com.ioleak.jnetcat.common.interfaces.ProcessAction;
-import com.ioleak.jnetcat.common.property.ListProperty;
+import com.ioleak.jnetcat.common.properties.ListProperty;
 
 public abstract class Listener<T, S>
         implements ProcessAction {

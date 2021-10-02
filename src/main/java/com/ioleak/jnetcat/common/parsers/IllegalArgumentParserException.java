@@ -23,50 +23,12 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.ioleak.jnetcat.options.startup;
+package com.ioleak.jnetcat.common.parsers;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.ioleak.jnetcat.server.udp.UDPServerType;
+public class IllegalArgumentParserException
+        extends RuntimeException {
 
-@JsonDeserialize(builder = ServerParametersUDP.ParametersBuilder.class)
-public class ServerParametersUDP
-        extends ServerParameters {
-
-  private final UDPServerType udpServerType;
-
-  public static class ParametersBuilder
-          extends ServerParameters.ParametersBuilder<ParametersBuilder> {
-
-    private UDPServerType udpServerType;
-
-    public ParametersBuilder(@JsonProperty("port") int port) {
-      super(port);
-    }
-
-    public ParametersBuilder withServerType(UDPServerType udpServerType) {
-      this.udpServerType = udpServerType;
-      return this;
-    }
-
-    @Override
-    public ServerParametersUDP build() {
-      return new ServerParametersUDP(this);
-    }
-
-    @Override
-    protected ParametersBuilder self() {
-      return this;
-    }
-  }
-
-  private ServerParametersUDP(ParametersBuilder builder) {
-    super(builder);
-
-    this.udpServerType = builder.udpServerType;
-  }
-
-  public UDPServerType getServerType() {
-    return udpServerType;
+  public IllegalArgumentParserException(String msg) {
+    super(msg);
   }
 }

@@ -25,6 +25,8 @@
  */
 package com.ioleak.jnetcat.common.property;
 
+import com.ioleak.jnetcat.common.properties.ObjectProperty;
+
 import java.beans.PropertyChangeEvent;
 
 import com.ioleak.jnetcat.common.utils.StringUtils;

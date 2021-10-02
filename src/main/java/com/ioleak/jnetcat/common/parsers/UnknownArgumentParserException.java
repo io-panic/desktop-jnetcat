@@ -23,13 +23,12 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.ioleak.jnetcat.common.property;
+package com.ioleak.jnetcat.common.parsers;
 
-import java.beans.PropertyChangeListener;
+public class UnknownArgumentParserException
+        extends RuntimeException {
 
-public interface Observable {
-
-  public void addListener(PropertyChangeListener listener);
-
-  public void removeListener(PropertyChangeListener listener);
+  public UnknownArgumentParserException(String msg) {
+    super(msg);
+  }
 }

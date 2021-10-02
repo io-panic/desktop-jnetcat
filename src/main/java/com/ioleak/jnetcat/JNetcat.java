@@ -29,29 +29,38 @@ import java.io.File;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Timer;
 import java.util.concurrent.CountDownLatch;
 
 import com.ioleak.jnetcat.common.FileWatcher;
 import com.ioleak.jnetcat.common.Logging;
-import com.ioleak.jnetcat.common.arguments.CommandLineArguments;
+import com.ioleak.jnetcat.common.parsers.ArgumentsParser;
 import com.ioleak.jnetcat.common.utils.JsonUtils;
 import com.ioleak.jnetcat.server.console.KeyCharReader;
 
 public class JNetcat {
 
+  public static final String DESCRIPTION = "A useful network tool to debug for client/server";
+  public static final String DEFAULT_CONFIG = "external/conf/AllOptionsInOne.json";
+
   private static Thread jnetcatThread;
   private static JNetcatProcess jnetcatRun;
 
   public static void main(String... args) {
-    String jsonParameters = "external/conf/AllOptionsInOne.json";
-    CommandLineArguments cliArgs = new CommandLineArguments(args);
+    String version = JNetcat.class.getPackage().getImplementationVersion();
+    ArgumentsParser argumentsParser = new ArgumentsParser(version, DESCRIPTION, getParametersMapping());
     int returnCode = 0;
 
-    if (cliArgs.switchPresent("-f")) {
-      jsonParameters = cliArgs.switchValue("-f");
+    argumentsParser.setArguments(args);
+
+    if (argumentsParser.switchPresent("-h")) {
+      System.out.println(argumentsParser.getHelpMessage());
+      System.exit(0);
     }
 
+    String jsonParameters = argumentsParser.switchValue("-f", DEFAULT_CONFIG);
     Logging.getLogger().info(String.format("Using parameter file: %s", jsonParameters));
     URL url = JsonUtils.getRelativePath(jsonParameters, JNetcat.class);
 
@@ -60,10 +69,10 @@ public class JNetcat {
       Logging.getLogger().info(String.format("Parameter file absolute path: %s", jsonFile.getAbsolutePath()));
 
       initJNetcatProcessRun(jsonFile);
-            
+
       startThreadFileWatcher(jsonFile, 2500);
       readKeyboardCharConsole();
-      
+
       keepRunningIndefinitely();
     } catch (URISyntaxException ex) {
       Logging.getLogger().error("Cannot start execution, invalid URI", ex);
@@ -124,5 +133,12 @@ public class JNetcat {
 
     jnetcatThread = new Thread(jnetcatRun);
     jnetcatThread.start();
+  }
+
+  private static Map<String, String> getParametersMapping() {
+    Map<String, String> parameters = new HashMap<>();
+    parameters.put("-f", "Configuration file to use for default parameters");
+
+    return parameters;
   }
 }

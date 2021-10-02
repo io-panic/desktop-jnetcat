@@ -23,52 +23,12 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.ioleak.jnetcat.common.property;
+package com.ioleak.jnetcat.common.parsers;
 
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeSupport;
+public class ParserNotInitializatedException
+        extends RuntimeException {
 
-public class ObjectProperty<T>
-        implements Observable {
-
-  public final static String PROPERTYNAME = "object";
-
-  private final PropertyChangeSupport listenerManager = new PropertyChangeSupport(this);
-  private T object;
-
-  public ObjectProperty() {
-    this(null);
-  }
-
-  public ObjectProperty(T objectValue) {
-    this.object = objectValue;
-  }
-
-  @Override
-  public void addListener(PropertyChangeListener listener) {
-    listenerManager.addPropertyChangeListener(listener);
-  }
-
-  @Override
-  public void removeListener(PropertyChangeListener listener) {
-    listenerManager.removePropertyChangeListener(listener);
-  }
-
-  public T get() {
-    return object;
-  }
-
-  public void set(T object) {
-    if (isModified(object)) {
-      PropertyChangeEvent event = new PropertyChangeEvent(this, PROPERTYNAME, this.object, object);
-
-      this.object = object;
-      listenerManager.firePropertyChange(event);
-    }
-  }
-
-  private boolean isModified(Object object) {
-    return (object != this.object && (object != null && !object.equals(this.object)));
+  public ParserNotInitializatedException(String msg) {
+    super(msg);
   }
 }

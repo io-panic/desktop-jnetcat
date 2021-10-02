@@ -45,7 +45,8 @@ public enum JNetcatProcess
 
   private ProcessAction processAction;
 
-  private JNetcatProcess() { }
+  private JNetcatProcess() {
+  }
 
   public void setJsonParamsFile(File jsonParamsFile) {
     this.jsonParamsFile = jsonParamsFile;
@@ -60,7 +61,7 @@ public enum JNetcatProcess
     if (getResultExecution() == JNetcatProcessResult.IN_PROGRESS) {
       throw new JNetcatProcessRunningException("An execution is already running");
     }
-    
+
     resultExecution = JNetcatProcessResult.IN_PROGRESS;
 
     if (params != null) {
@@ -92,16 +93,16 @@ public enum JNetcatProcess
     } else {
       resultExecution = JNetcatProcessResult.ERROR;
     }
-    
-    resultExecution = resultExecution == JNetcatProcessResult.IN_PROGRESS ? 
-                      JNetcatProcessResult.SUCCESS : resultExecution;
+
+    resultExecution = resultExecution == JNetcatProcessResult.IN_PROGRESS
+                      ? JNetcatProcessResult.SUCCESS : resultExecution;
   }
 
   private JNetcatParameters getParametersFromFile() {
     if (jsonParamsFile == null) {
       throw new JNetcatProcessFileNotSetException("File parameters is not set on the object");
     }
-        
+
     String jsonData = JsonUtils.loadJsonFileToString(jsonParamsFile);
     JNetcatParameters params = JsonUtils.jsonToObject(jsonData, JNetcatParameters.class);
 

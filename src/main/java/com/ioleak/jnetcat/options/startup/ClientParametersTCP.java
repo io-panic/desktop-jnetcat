@@ -32,7 +32,8 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 public class ClientParametersTCP
         extends ClientParameters {
 
-  public static class ParametersBuilder extends ClientParameters.ParametersBuilder<ParametersBuilder> {
+  public static class ParametersBuilder
+          extends ClientParameters.ParametersBuilder<ParametersBuilder> {
 
     public ParametersBuilder(@JsonProperty("ip") String ip,
                              @JsonProperty("port") int port) {

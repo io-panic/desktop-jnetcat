@@ -23,50 +23,13 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.ioleak.jnetcat.options.startup;
+package com.ioleak.jnetcat.common.properties;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.ioleak.jnetcat.server.udp.UDPServerType;
+import java.beans.PropertyChangeListener;
 
-@JsonDeserialize(builder = ServerParametersUDP.ParametersBuilder.class)
-public class ServerParametersUDP
-        extends ServerParameters {
+public interface Observable {
 
-  private final UDPServerType udpServerType;
+  public void addListener(PropertyChangeListener listener);
 
-  public static class ParametersBuilder
-          extends ServerParameters.ParametersBuilder<ParametersBuilder> {
-
-    private UDPServerType udpServerType;
-
-    public ParametersBuilder(@JsonProperty("port") int port) {
-      super(port);
-    }
-
-    public ParametersBuilder withServerType(UDPServerType udpServerType) {
-      this.udpServerType = udpServerType;
-      return this;
-    }
-
-    @Override
-    public ServerParametersUDP build() {
-      return new ServerParametersUDP(this);
-    }
-
-    @Override
-    protected ParametersBuilder self() {
-      return this;
-    }
-  }
-
-  private ServerParametersUDP(ParametersBuilder builder) {
-    super(builder);
-
-    this.udpServerType = builder.udpServerType;
-  }
-
-  public UDPServerType getServerType() {
-    return udpServerType;
-  }
+  public void removeListener(PropertyChangeListener listener);
 }

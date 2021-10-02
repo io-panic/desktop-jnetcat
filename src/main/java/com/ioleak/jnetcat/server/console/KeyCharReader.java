@@ -31,7 +31,7 @@ import java.io.IOException;
 import java.util.function.Supplier;
 
 import com.ioleak.jnetcat.common.Logging;
-import com.ioleak.jnetcat.common.property.Observable;
+import com.ioleak.jnetcat.common.properties.Observable;
 
 public class KeyCharReader
         implements Observable {
@@ -94,7 +94,7 @@ public class KeyCharReader
       while (charValid) {
         char key = (char) System.in.read();
         charValid = (key != 65535 && key != -1);
-        
+
         switch (Character.toLowerCase(key)) {
           case 'k':
             throw new HitKeyCloseCharReaderException("Exit program: k key used");

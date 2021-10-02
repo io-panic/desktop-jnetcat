@@ -75,18 +75,19 @@ public class StringUtils {
   public static boolean isNullOrEmpty(String string) {
     return string == null || string.trim().isEmpty();
   }
-  
+
   public static String generateRandomString(int length) {
     int zeroNumeralIntValue = 48; // numeral '0'
     int zLetterIntValue = 122; // letter 'z'
 
-    if (length < 0)
+    if (length < 0) {
       length = 0;
-    
+    }
+
     return new Random().ints(zeroNumeralIntValue, zLetterIntValue + 1)
-      .filter(i -> (i <= 57 || i >= 65) && (i <= 90 || i >= 97))
-      .limit(length)
-      .collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append)
-      .toString();
+            .filter(i -> (i <= 57 || i >= 65) && (i <= 90 || i >= 97))
+            .limit(length)
+            .collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append)
+            .toString();
   }
 }

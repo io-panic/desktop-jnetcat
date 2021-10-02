@@ -23,50 +23,52 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.ioleak.jnetcat.options.startup;
+package com.ioleak.jnetcat.common.properties;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.ioleak.jnetcat.server.udp.UDPServerType;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 
-@JsonDeserialize(builder = ServerParametersUDP.ParametersBuilder.class)
-public class ServerParametersUDP
-        extends ServerParameters {
+public class ObjectProperty<T>
+        implements Observable {
 
-  private final UDPServerType udpServerType;
+  public final static String PROPERTYNAME = "object";
 
-  public static class ParametersBuilder
-          extends ServerParameters.ParametersBuilder<ParametersBuilder> {
+  private final PropertyChangeSupport listenerManager = new PropertyChangeSupport(this);
+  private T object;
 
-    private UDPServerType udpServerType;
+  public ObjectProperty() {
+    this(null);
+  }
 
-    public ParametersBuilder(@JsonProperty("port") int port) {
-      super(port);
-    }
+  public ObjectProperty(T objectValue) {
+    this.object = objectValue;
+  }
 
-    public ParametersBuilder withServerType(UDPServerType udpServerType) {
-      this.udpServerType = udpServerType;
-      return this;
-    }
+  @Override
+  public void addListener(PropertyChangeListener listener) {
+    listenerManager.addPropertyChangeListener(listener);
+  }
 
-    @Override
-    public ServerParametersUDP build() {
-      return new ServerParametersUDP(this);
-    }
+  @Override
+  public void removeListener(PropertyChangeListener listener) {
+    listenerManager.removePropertyChangeListener(listener);
+  }
 
-    @Override
-    protected ParametersBuilder self() {
-      return this;
+  public T get() {
+    return object;
+  }
+
+  public void set(T object) {
+    if (isModified(object)) {
+      PropertyChangeEvent event = new PropertyChangeEvent(this, PROPERTYNAME, this.object, object);
+
+      this.object = object;
+      listenerManager.firePropertyChange(event);
     }
   }
 
-  private ServerParametersUDP(ParametersBuilder builder) {
-    super(builder);
-
-    this.udpServerType = builder.udpServerType;
-  }
-
-  public UDPServerType getServerType() {
-    return udpServerType;
+  private boolean isModified(Object object) {
+    return (object != this.object && (object != null && !object.equals(this.object)));
   }
 }

@@ -35,7 +35,8 @@ public class ServerParametersTCP
 
   private final TCPServerType tcpServerType;
 
-  public static class ParametersBuilder extends ServerParameters.ParametersBuilder<ParametersBuilder> {
+  public static class ParametersBuilder
+          extends ServerParameters.ParametersBuilder<ParametersBuilder> {
 
     private TCPServerType tcpServerType;
 

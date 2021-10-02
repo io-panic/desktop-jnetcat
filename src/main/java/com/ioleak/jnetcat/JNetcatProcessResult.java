@@ -23,14 +23,12 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-
 package com.ioleak.jnetcat;
 
 import com.ioleak.jnetcat.common.BaseEnum;
 
-
 public enum JNetcatProcessResult
-  implements BaseEnum {
+        implements BaseEnum {
 
   UNKNOWN(-1, "Value unknown: no execution"),
   SUCCESS(0, "Process executed with success"),
