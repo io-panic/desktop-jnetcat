@@ -23,15 +23,11 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.ioleak.jnetcat.common.arguments;
+package com.ioleak.jnetcat.common.parsers;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import com.ioleak.jnetcat.common.parsers.ArgumentsParser;
-import com.ioleak.jnetcat.common.parsers.IllegalArgumentParserException;
-import com.ioleak.jnetcat.common.parsers.ParserNotInitializatedException;
-import com.ioleak.jnetcat.common.parsers.UnknownArgumentParserException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -45,7 +41,7 @@ public class ArgumentsParserTest {
   ArgumentsParser argumentsParser;
 
   @BeforeEach
-  public void init() {
+  public void setUp() {
     Map<String, String> parameters = new HashMap<>();
     parameters.put("-f", "Set the configuration file");
     parameters.put("-d", "Enter a numerical value");

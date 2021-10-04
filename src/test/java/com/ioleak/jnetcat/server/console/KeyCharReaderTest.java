@@ -29,7 +29,6 @@ import java.beans.PropertyChangeEvent;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -51,14 +50,9 @@ public class KeyCharReaderTest {
   private boolean hitKeyS = false;
   private boolean hitKeyQ = false;
 
-  @BeforeAll
-  public void setUpStreams() {
-    //System.setIn(inContent);
-    //System.setErr(new PrintStream(errContent));
-  }
-
+  
   @BeforeEach
-  public void initPropertyListener() {
+  public void setUp() {
     keyCharReader = new KeyCharReader(this::hitKeyS, this::hitKeyQ);
     stringEventReceived = new StringBuilder();
 

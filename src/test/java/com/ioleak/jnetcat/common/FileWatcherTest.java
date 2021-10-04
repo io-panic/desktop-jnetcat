@@ -30,6 +30,8 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.StandardOpenOption;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 
 import com.ioleak.jnetcat.common.utils.StringUtils;
 import org.junit.jupiter.api.AfterEach;
@@ -43,18 +45,19 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class FileWatcherTest {
 
   private static final File TEMP_FILE = new File(String.format("%s.txt", StringUtils.generateRandomString(8)));
-
+  private static final int ADD_DELAY_TO_MODIFY_FILE_DATE = 1250;
+  
   FileWatcher fileWatcher;
   private boolean fileWasUpdated;
 
   @BeforeEach
-  public void init() {
+  public void setUp() {
     fileWasUpdated = false;
     fileWatcher = new FileWatcher(TEMP_FILE, (file) -> fileWasUpdated = true);
   }
 
   @AfterEach
-  public void destroy() {
+  public void tearDown() {
     if (TEMP_FILE.exists() && !TEMP_FILE.delete()) {
       Logging.getLogger().warn("An error occured while trying to delete file: %s", TEMP_FILE.getAbsolutePath());
     }
@@ -102,16 +105,18 @@ public class FileWatcherTest {
     assertTrue(fileWasUpdated, "Execution on first run should occurs");
 
     fileWasUpdated = false;
-    TEMP_FILE.delete();
+    assertTrue(TEMP_FILE.delete());
     fileWatcher.run();
     assertFalse(fileWasUpdated);
 
     createFile(TEMP_FILE);
+    TEMP_FILE.setLastModified(Instant.now().plus(1, ChronoUnit.HOURS).toEpochMilli());
+    
     fileWatcher.run();
     assertTrue(fileWasUpdated);
   }
 
-  private void createFile(File file) {
+  private boolean createFile(File file) {
     boolean fileCreated = false;
 
     try {
@@ -123,5 +128,7 @@ public class FileWatcherTest {
     }
 
     assertEquals(true, fileCreated, "The file must be created and exists to detect change");
+    
+    return fileCreated;
   }
 }

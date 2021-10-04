@@ -23,13 +23,9 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.ioleak.jnetcat.common.property;
-
-import com.ioleak.jnetcat.common.properties.ListProperty;
+package com.ioleak.jnetcat.common.properties;
 
 import java.beans.PropertyChangeEvent;
-import java.util.ArrayList;
-import java.util.Arrays;
 
 import com.ioleak.jnetcat.common.utils.StringUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -38,15 +34,15 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class ListPropertyTest {
+public class ObjectPropertyTest {
 
   private PropertyChangeEvent event;
-  private ListProperty<String> listProperty;
+  private ObjectProperty<String> objectProperty;
 
   @BeforeEach
-  public void initListProperty() {
-    listProperty = new ListProperty<>(new ArrayList<>(Arrays.asList("A", "B", "C", "D")));
-    listProperty.addListener((PropertyChangeEvent propertyChangeEvent) -> {
+  public void setUp() {
+    objectProperty = new ObjectProperty<>();
+    objectProperty.addListener((PropertyChangeEvent propertyChangeEvent) -> {
       this.event = propertyChangeEvent;
     });
 
@@ -54,61 +50,23 @@ public class ListPropertyTest {
   }
 
   @Test
-  public void add_Value_ExpectValue() {
-    listProperty.add("E");
+  public void setObject_ValueToEmpty_ValueWithEventFired() {
+    objectProperty.set("One Value");
 
     assertTrue(event != null);
     assertTrue(StringUtils.isNullOrEmpty((String) event.getOldValue()));
-    assertEquals("E", event.getNewValue());
+    assertEquals("One Value", event.getNewValue());
+    assertEquals("One Value", objectProperty.get());
   }
 
   @Test
-  public void remove_ValueDontExists_NoEventFired() {
-    listProperty.remove("E");
-
-    assertTrue(event == null);
-  }
-
-  @Test
-  public void remove_ExistingValue_ValueRemoved() {
-    listProperty.remove("D");
+  public void setObject_ExistingPreviousValue_ValueWithEventFired() {
+    objectProperty.set("One Value");
+    objectProperty.set("New Value");
 
     assertTrue(event != null);
-    assertEquals("D", event.getOldValue());
-    assertTrue(StringUtils.isNullOrEmpty((String) event.getNewValue()));
-  }
-
-  @Test
-  public void addAll_ExistingAndNewValues_ValuesAdded() {
-    listProperty.addAll(Arrays.asList("D", "E", "F"));
-
-    assertTrue(event != null);
-    assertEquals(Arrays.asList("D", "E", "F"), event.getOldValue());
-    assertEquals(Arrays.asList("A", "B", "C", "D", "D", "E", "F"), event.getNewValue());
-  }
-
-  @Test
-  public void addAll_ExistingAndNewValuesAtPosition_ValuesAdded() {
-    listProperty.addAll(2, Arrays.asList("D", "E", "F"));
-
-    assertTrue(event != null);
-    assertEquals(Arrays.asList("D", "E", "F"), event.getOldValue());
-    assertEquals(Arrays.asList("A", "B", "D", "E", "F", "C", "D"), event.getNewValue());
-  }
-
-  @Test
-  public void removeAll_Values_Removed() {
-    listProperty.removeAll(Arrays.asList("D", "E", "F"));
-
-    assertTrue(event != null);
-    assertEquals(Arrays.asList("D", "E", "F"), event.getOldValue());
-    assertEquals(Arrays.asList("A", "B", "C"), event.getNewValue());
-  }
-
-  @Test
-  public void removeAll_NoValuesExists_NoEventFired() {
-    listProperty.removeAll(Arrays.asList("E", "F"));
-
-    assertTrue(event == null);
+    assertEquals("One Value", event.getOldValue());
+    assertEquals("New Value", event.getNewValue());
+    assertEquals("New Value", objectProperty.get());
   }
 }

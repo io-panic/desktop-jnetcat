@@ -23,47 +23,39 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.ioleak.jnetcat.server.tcp.implement;
+package com.ioleak.jnetcat.server.tcp;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.net.Socket;
-import java.net.SocketException;
+import com.ioleak.jnetcat.common.BaseEnum;
 
-import com.ioleak.jnetcat.common.Logging;
-import com.ioleak.jnetcat.server.tcp.TCPClientConnection;
+public enum TCPServerState
+        implements BaseEnum {
 
-public class Echo
-        implements TCPClientConnection {
+  NOT_STARTED(-1, "No server is started (not listening)"),
+  STARTING(0, "Server is starting..."),
+  WAITING_FOR_CONNECTION(1, "Waiting for a new connection"),
+  CLIENT_CONNECTED(2, "A client is connected"),
+  CLOSED(3, "Server was running but not listening anymore");
+
+  private int code;
+  private String msg;
+
+  private TCPServerState(int code, String msg) {
+    this.code = code;
+    this.msg = msg;
+  }
 
   @Override
-  public void startClient(Socket clientSocket)
-          throws IOException, SocketException {
-    String inputLine;
-    PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
-    BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+  public int getCode() {
+    return code;
+  }
 
-    out.println("Welcome on super echo server v0.0.0-alpha0");
-    out.println("This server accept only one connection at a time");
-    out.println("You can type anything you want. Type 'exit' to quit");
-    out.println();
+  @Override
+  public String getDetails(Object... args) {
+    return msg;
+  }
 
-    while ((!Thread.currentThread().isInterrupted()) && (inputLine = in.readLine()) != null) {
-      if (inputLine.toLowerCase().equals("exit")) {
-        out.println();
-        out.println("****** Bye! ******");
-
-        in.close();
-        out.close();
-        clientSocket.close();
-
-        break;
-      } else {
-        Logging.getLogger().info(String.format("Received data: %s", inputLine));
-        out.println(inputLine);
-      }
-    }
+  @Override
+  public String toString() {
+    return String.format("%d [%s]", getCode(), getDetails());
   }
 }

@@ -30,7 +30,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
-import java.net.SocketException;
 
 import com.ioleak.jnetcat.common.Logging;
 import com.ioleak.jnetcat.common.interfaces.ProcessAction;
@@ -41,8 +40,6 @@ public class TCPClient
         implements ProcessAction {
 
   private Socket clientSocket;
-  private PrintWriter out;
-  private BufferedReader in;
 
   private final String ip;
   private final int port;
@@ -63,11 +60,7 @@ public class TCPClient
         Logging.getLogger().warn(String.format("TCP connection already open on %s:%d", ip, port));
       } else {
         Logging.getLogger().info(String.format("Trying to open a TCP connection [%s:%s]", ip, port));
-
         clientSocket = new Socket(ip, port);
-        out = new PrintWriter(clientSocket.getOutputStream(), true);
-        in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-
         Logging.getLogger().info(String.format("TCP connection established on %s:%d", ip, port));
       }
     } catch (IOException ex) {
@@ -79,36 +72,63 @@ public class TCPClient
     return this;
   }
 
-  public String sendMessage(String msg) {
-    out.println(msg);
-    String resp = null;
+  public void sendMessage(String msg) {
+    if (!connectedProperty().get()) {
+      throw new ClientNotConnectedException("Client must be connected");
+    }
 
     try {
-      resp = in.readLine();
-    } catch (SocketException ex) {
-      Logging.getLogger().error(String.format("Unable to send a TCP message on %s:%d", ip, port));
-      Logging.getLogger().error(String.format("Socket error message: %s", ex.getMessage()));
+      clientSocket.sendUrgentData(1);
 
-      close();
+      PrintWriter printWriter = getOutputStream(clientSocket);
+      printWriter.print(msg);
+      printWriter.flush();
+
+      if (printWriter.checkError()) {
+        clientSocket.close();
+        throw new ClientNotConnectedException("Unable to sendMessage: socket not connected");
+      }
+
     } catch (IOException ex) {
-      Logging.getLogger().error(String.format("Unable to send a TCP message on %s:%d", ip, port), ex);
+      Logging.getLogger().error(String.format("sendMessage error: ", ex.getMessage()));
+      if (clientSocket != null) {
+        try {
+          clientSocket.close();
+        } catch (IOException e) {
+          Logging.getLogger().error("Unable to close client socket", e);
+        }
+      }
+    } finally {
+      updateConnectedProperty();
+    }
+  }
+
+  public String readMessage() {
+    if (!connectedProperty().get()) {
+      throw new ClientNotConnectedException("Client must be connected");
+    }
+
+    String readData = "";
+
+    try {
+      BufferedReader bufferedReader = getInputStream(clientSocket);
+      readData = bufferedReader.readLine();
+
+      if (readData == null) {
+        clientSocket.close();
+        throw new ClientNotConnectedException("Unable to read message: client not connected");
+      }
+    } catch (IOException ex) {
+      Logging.getLogger().error("Unable to read message from socket", ex);
     } finally {
       updateConnectedProperty();
     }
 
-    return resp;
+    return readData;
   }
 
   public void close() {
     try {
-      if (in != null) {
-        in.close();
-      }
-
-      if (out != null) {
-        out.close();
-      }
-
       if (clientSocket != null) {
         clientSocket.close();
       }
@@ -135,7 +155,35 @@ public class TCPClient
     throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
   }
 
+  private PrintWriter getOutputStream(Socket clientSocket) {
+    PrintWriter printWriter;
+
+    try {
+      printWriter = new PrintWriter(clientSocket.getOutputStream(), false);
+    } catch (IOException ex) {
+      throw new ClientSendMessageException(ex.getMessage());
+    } finally {
+      updateConnectedProperty();
+    }
+
+    return printWriter;
+  }
+
+  private BufferedReader getInputStream(Socket clientSocket) {
+    BufferedReader bufferedReader;
+
+    try {
+      bufferedReader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+    } catch (IOException ex) {
+      throw new ClientReadMessageException(ex.getMessage());
+    } finally {
+      updateConnectedProperty();
+    }
+
+    return bufferedReader;
+  }
+
   private void updateConnectedProperty() {
-    connectedProperty.set(clientSocket != null && clientSocket.isConnected() && !clientSocket.isClosed());
+    connectedProperty.set(clientSocket != null && !clientSocket.isClosed() && clientSocket.isConnected());
   }
 }

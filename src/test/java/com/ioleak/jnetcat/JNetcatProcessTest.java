@@ -26,12 +26,11 @@
 package com.ioleak.jnetcat;
 
 import java.io.File;
-import java.util.function.BooleanSupplier;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
+import com.ioleak.jnetcat.client.ClientNotConnectedException;
 import com.ioleak.jnetcat.client.TCPClient;
 import com.ioleak.jnetcat.common.Logging;
+import com.ioleak.jnetcat.common.utils.ThreadUtils;
 import com.ioleak.jnetcat.options.JNetcatParameters;
 import com.ioleak.jnetcat.options.startup.ClientParametersTCP;
 import com.ioleak.jnetcat.options.startup.ServerParametersTCP;
@@ -62,7 +61,7 @@ public class JNetcatProcessTest {
   private Thread jNetcatThread;
 
   @BeforeAll
-  public void initJNetcatProces() {
+  public void setUpAll() {
     jNetcatProcess = JNetcatProcess.JNETCATPROCESS;
   }
 
@@ -100,7 +99,7 @@ public class JNetcatProcessTest {
     };
 
     jNetcatThread.start();
-    waitForThread(() ->  jNetcatProcess.getResultExecution() != JNetcatProcessResult.IN_PROGRESS);
+    ThreadUtils.waitForThread(() ->  jNetcatProcess.getResultExecution() != JNetcatProcessResult.IN_PROGRESS);
 
     assertEquals(JNetcatProcessResult.IN_PROGRESS, jNetcatProcess.getResultExecution());
   }
@@ -124,8 +123,8 @@ public class JNetcatProcessTest {
     assertTrue(tcpClient.connectedProperty().get());
     
     jNetcatProcess.stopActiveExecution();
-    tcpClient.sendMessage("Test message");
- 
+    
+    assertThrows(ClientNotConnectedException.class, () -> tcpClient.sendMessage("Test message"));
     assertFalse(tcpClient.connectedProperty().get());
     assertEquals(JNetcatProcessResult.IN_PROGRESS, jNetcatProcess.getResultExecution());
   }
@@ -133,28 +132,16 @@ public class JNetcatProcessTest {
   @Test
   @Order(4)
   public void stopExecutions_ThreadOrder4_SuccessCode() {
+    Logging.getLogger().warn(String.format("Executing: %s", new Throwable().getStackTrace()[0].getMethodName()));
+    
     jNetcatProcess.stopExecutions();
 
     try {
-      jNetcatThread.join(THREAD_MAX_WAIT_MS);
+      jNetcatThread.join();
     } catch (InterruptedException ex) {
-      Logger.getLogger(JNetcatProcessTest.class.getName()).log(Level.SEVERE, null, ex);
+      Logging.getLogger().error("Interrupted Exception", ex);
     }
 
     assertEquals(JNetcatProcessResult.SUCCESS, jNetcatProcess.getResultExecution());
-  }
-  
-  private void waitForThread(BooleanSupplier conditionToWaitFor) {
-    int i = 0;
-    
-    while (i <= 10 && conditionToWaitFor.getAsBoolean()) {
-      try {
-        Thread.sleep(THREAD_MIN_WAIT_MS);
-      } catch (InterruptedException ex) {
-        Logging.getLogger().error("Interrupted exception", ex);
-      }
-      
-      i++;
-    }
   }
 }

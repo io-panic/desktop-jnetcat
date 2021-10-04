@@ -39,7 +39,7 @@ public class TCPServer
         extends Listener<TCPServerType, Socket> {
 
   private ServerSocket serverSocket;
-  private boolean stopServerHitKey = false;
+  private TCPServerState serverState = TCPServerState.NOT_STARTED;
 
   public TCPServer(ServerParametersTCP serverParametersTCP) {
     this(serverParametersTCP.getServerType(), serverParametersTCP.getPort());
@@ -51,15 +51,18 @@ public class TCPServer
 
   @Override
   public void startServer() {
-    Logging.getLogger().info(String.format("Listening on port %d", getPort()));
+    serverState = TCPServerState.STARTING;
     Logging.getLogger().info(String.format("Server act as a server: %s", getServerType().toString()));
 
     try {
       serverSocket = new ServerSocket(getPort());
+      Logging.getLogger().info(String.format("Listening on port %d", getLocalPort()));
 
-      while (!stopServerHitKey && !Thread.currentThread().isInterrupted()) {
+      while (!(serverSocket.isClosed() || Thread.currentThread().isInterrupted())) {
 
+        serverState = TCPServerState.WAITING_FOR_CONNECTION;
         try (Socket socket = serverSocket.accept()) {
+          serverState = TCPServerState.CLIENT_CONNECTED;
           getConnectionClients().add(socket);
           Logging.getLogger().info(String.format("Connection received from %s", socket.getRemoteSocketAddress()));
 
@@ -71,31 +74,33 @@ public class TCPServer
 
           Logging.getLogger().info(String.format("Connection closed on client %s", socket.getRemoteSocketAddress()));
         } catch (IOException ex) {
-          if (!stopServerHitKey) {
+          if (!serverSocket.isClosed()) {
             Logging.getLogger().info("Client connection error", ex);
           }
         }
       }
     } catch (IOException ex) {
-      if (!stopServerHitKey) {
+      if (!serverSocket.isClosed()) {
         Logging.getLogger().info(String.format("Unable to start TCP listener"));
       }
     }
 
-    Logging.getLogger().warn(String.format("Server closed on port %d", getPort()));
+    serverState = TCPServerState.CLOSED;
+    Logging.getLogger().warn(String.format("Server closed on defined port %d", getPort()));
   }
 
   @Override
   public boolean stopActiveExecution() {
     boolean clentClosed = false;
 
-    List<Socket> sockets = getConnectionClients();
-    for (Socket socket : sockets) {
+    List<Socket> copyClients = List.copyOf(getConnectionClients());
+    for (Socket socket : copyClients) {
       if (socket.isConnected() && !socket.isClosed()) {
         Logging.getLogger().warn(String.format("Received a key to stop client connection (%s)", socket.getRemoteSocketAddress()));
 
         try {
           socket.close();
+          getConnectionClients().remove(socket);
           clentClosed = true;
 
           Logging.getLogger().error("Client connection closed successfully");
@@ -115,10 +120,18 @@ public class TCPServer
   @Override
   public boolean stopExecutions() {
     boolean closed = false;
-    stopServerHitKey = true;
 
     try {
       Logging.getLogger().info("Close server request received...");
+
+      List<Socket> copyClients = List.copyOf(getConnectionClients());
+      for (Socket client : copyClients) {
+        if (client.isConnected() && !client.isClosed()) {
+          client.close();
+        }
+
+        getConnectionClients().remove(client);
+      }
 
       if (serverSocket != null && !serverSocket.isClosed()) {
         serverSocket.close();
@@ -129,5 +142,21 @@ public class TCPServer
     }
 
     return closed;
+  }
+
+  public TCPServerState getServerState() {
+    return serverState;
+  }
+
+  public int getLocalPort() {
+    if (serverSocket == null || serverSocket.isClosed()) {
+      throw new TCPServerUnitializatedStartException("Server is not started");
+    }
+
+    return serverSocket.getLocalPort();
+  }
+
+  public int getConnectedClientsNumber() {
+    return getConnectionClients().size();
   }
 }

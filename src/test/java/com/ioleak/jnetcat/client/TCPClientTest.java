@@ -25,6 +25,108 @@
  */
 package com.ioleak.jnetcat.client;
 
+
+import com.ioleak.jnetcat.client.mock.TCPServerMock;
+import com.ioleak.jnetcat.common.Logging;
+import com.ioleak.jnetcat.options.startup.ClientParametersTCP;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 public class TCPClientTest {
 
+  TCPServerMock tcpServerMock;
+  Thread tcpServerThread;
+
+  @BeforeEach
+  private void setUp() {
+    tcpServerMock = new TCPServerMock();
+    tcpServerThread = new Thread(tcpServerMock::run);
+    tcpServerThread.start();
+  }
+
+  @AfterEach
+  private void tearDown() {
+    tcpServerMock.closeServer();
+    tcpServerThread.interrupt();
+
+    try {
+      tcpServerThread.join();
+    } catch (InterruptedException ex) {
+      Logging.getLogger().error("InterruptedException", ex);
+    }
+  }
+
+  @Test
+  public void sendMessage_NoConnection_ExceptionThrown() {
+    ClientParametersTCP clientParametersTCP = new ClientParametersTCP.ParametersBuilder("127.0.0.1", tcpServerMock.getPort()).build();
+    TCPClient tcpClient = new TCPClient(clientParametersTCP);
+
+    assertThrows(ClientNotConnectedException.class, () -> tcpClient.sendMessage("Hello wait"));
+  }
+
+  @Test
+  public void sendMessage_StringWithCRLF_AsExpected() {
+    ClientParametersTCP clientParametersTCP = new ClientParametersTCP.ParametersBuilder("127.0.0.1", tcpServerMock.getPort()).build();
+    TCPClient tcpClient = new TCPClient(clientParametersTCP);
+
+    tcpClient.open();
+    assertTrue(tcpClient.connectedProperty().get());
+
+    tcpClient.sendMessage("Hello wait\n");
+    assertEquals("Hello wait", tcpServerMock.read());
+  }
+
+  @Test
+  public void sendMessage_ServerCloseClient_ExceptionThrown() {
+    ClientParametersTCP clientParametersTCP = new ClientParametersTCP.ParametersBuilder("127.0.0.1", tcpServerMock.getPort()).build();
+    TCPClient tcpClient = new TCPClient(clientParametersTCP);
+
+    tcpClient.open();
+    assertTrue(tcpClient.connectedProperty().get());
+
+    tcpServerMock.closeClient();
+
+    assertThrows(ClientNotConnectedException.class, () -> tcpClient.sendMessage("Test message\n"));
+    assertFalse(tcpClient.connectedProperty().get());
+  }
+
+  @Test
+  public void readMessage_NoConnection_ExceptionThrown() {
+    ClientParametersTCP clientParametersTCP = new ClientParametersTCP.ParametersBuilder("127.0.0.1", tcpServerMock.getPort()).build();
+    TCPClient tcpClient = new TCPClient(clientParametersTCP);
+
+    assertThrows(ClientNotConnectedException.class, () -> tcpClient.readMessage());
+  }
+
+  @Test
+  public void readMessage_StringWithCRLF_AsExpected() {
+    ClientParametersTCP clientParametersTCP = new ClientParametersTCP.ParametersBuilder("127.0.0.1", tcpServerMock.getPort()).build();
+    TCPClient tcpClient = new TCPClient(clientParametersTCP);
+
+    tcpClient.open();
+    assertTrue(tcpClient.connectedProperty().get());
+
+    tcpServerMock.write("Hello wait\n");
+    assertEquals("Hello wait", tcpClient.readMessage());
+  }
+
+  @Test
+  public void readMessage_ServerCloseClient_ExceptionThrown() {
+    ClientParametersTCP clientParametersTCP = new ClientParametersTCP.ParametersBuilder("127.0.0.1", tcpServerMock.getPort()).build();
+    TCPClient tcpClient = new TCPClient(clientParametersTCP);
+
+    tcpClient.open();
+    assertTrue(tcpClient.connectedProperty().get());
+
+    tcpServerMock.closeClient();
+
+    assertThrows(ClientNotConnectedException.class, () -> tcpClient.readMessage());
+    assertFalse(tcpClient.connectedProperty().get());
+  }
 }

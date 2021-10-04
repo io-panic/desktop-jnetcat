@@ -23,47 +23,28 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.ioleak.jnetcat.server.tcp.implement;
+package com.ioleak.jnetcat.common.utils;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.net.Socket;
-import java.net.SocketException;
+import java.util.function.BooleanSupplier;
 
 import com.ioleak.jnetcat.common.Logging;
-import com.ioleak.jnetcat.server.tcp.TCPClientConnection;
 
-public class Echo
-        implements TCPClientConnection {
+public class ThreadUtils {
 
-  @Override
-  public void startClient(Socket clientSocket)
-          throws IOException, SocketException {
-    String inputLine;
-    PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
-    BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+  public static final int THREAD_MIN_WAIT_MS = 100;
+  public static final int MAX_NB_LOOP = 10;
 
-    out.println("Welcome on super echo server v0.0.0-alpha0");
-    out.println("This server accept only one connection at a time");
-    out.println("You can type anything you want. Type 'exit' to quit");
-    out.println();
+  public static void waitForThread(BooleanSupplier conditionToWaitFor) {
+    int i = 0;
 
-    while ((!Thread.currentThread().isInterrupted()) && (inputLine = in.readLine()) != null) {
-      if (inputLine.toLowerCase().equals("exit")) {
-        out.println();
-        out.println("****** Bye! ******");
-
-        in.close();
-        out.close();
-        clientSocket.close();
-
-        break;
-      } else {
-        Logging.getLogger().info(String.format("Received data: %s", inputLine));
-        out.println(inputLine);
+    while (i <= MAX_NB_LOOP && conditionToWaitFor.getAsBoolean()) {
+      try {
+        Thread.sleep(THREAD_MIN_WAIT_MS);
+      } catch (InterruptedException ex) {
+        Logging.getLogger().error("Interrupted exception", ex);
       }
+
+      i++;
     }
   }
 }
