@@ -39,7 +39,7 @@ import com.ioleak.jnetcat.common.properties.ObjectProperty;
 import com.ioleak.jnetcat.options.startup.ClientParametersTCP;
 
 public class TCPClient
-        implements ProcessAction {
+        implements ProcessAction, SocketClient {
 
   private static final String EXCEPTION_CLIENT_NOT_CONNECTED = "Client is not connected to a server: %s";
 
@@ -129,20 +129,6 @@ public class TCPClient
     return readData;
   }
 
-  public void close() {
-    try {
-      if (clientSocket != null) {
-        clientSocket.close();
-      }
-
-      Logging.getLogger().info(String.format("TCP connection closed on %s:%d", ip, port));
-    } catch (IOException ex) {
-      Logging.getLogger().error(String.format("An error occurred while closing connection on %s:%d", ip, port), ex);
-    } finally {
-      updateConnectedProperty();
-    }
-  }
-
   @Override
   public boolean isRunning() {
     return connectedProperty().get();
@@ -154,7 +140,22 @@ public class TCPClient
 
   @Override
   public boolean stopActiveExecution() {
-    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    boolean closed = false;
+    
+    try {
+      if (clientSocket != null) {
+        clientSocket.close();
+        closed = true;
+      }
+
+      Logging.getLogger().info(String.format("TCP connection closed on %s:%d", ip, port));
+    } catch (IOException ex) {
+      Logging.getLogger().error(String.format("An error occurred while closing connection on %s:%d", ip, port), ex);
+    } finally {
+      updateConnectedProperty();
+    }
+    
+    return closed;
   }
 
   @Override

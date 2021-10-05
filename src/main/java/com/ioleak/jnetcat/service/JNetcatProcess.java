@@ -27,6 +27,7 @@ package com.ioleak.jnetcat.service;
 
 import java.io.File;
 
+import com.ioleak.jnetcat.common.Logging;
 import com.ioleak.jnetcat.common.interfaces.ProcessAction;
 import com.ioleak.jnetcat.common.utils.JsonUtils;
 import com.ioleak.jnetcat.options.JNetcatParameters;
@@ -60,6 +61,7 @@ public enum JNetcatProcess
       throw new JNetcatProcessRunningException("An execution is already in progress");
     }
 
+    Logging.getLogger().info("Starting background process...");
     resultExecution = JNetcatProcessResult.IN_PROGRESS;
 
     if (params != null) {

@@ -23,34 +23,14 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.ioleak.jnetcat.service;
 
-import com.ioleak.jnetcat.client.TCPClient;
-import com.ioleak.jnetcat.client.UDPClient;
-import com.ioleak.jnetcat.common.interfaces.ProcessAction;
-import com.ioleak.jnetcat.options.JNetcatParameters;
-import com.ioleak.jnetcat.server.tcp.TCPServer;
-import com.ioleak.jnetcat.server.udp.UDPServer;
+package com.ioleak.jnetcat.client;
 
-public class JNetcatProcessFactory {
+import com.ioleak.jnetcat.common.properties.ObjectProperty;
 
-  public static ProcessAction createProcess(JNetcatParameters params) {
-    ProcessAction processAction;
 
-    if (params.isStartAsServer()) {
-      if (params.isUseProtocolTCP()) {
-        processAction = new TCPServer(params.getServerParametersTCP());
-      } else {
-        processAction = new UDPServer(params.getServerParametersUDP());
-      }
-    } else {
-      if (params.isUseProtocolTCP()) {
-        processAction = new TCPClient(params.getClientParametersTCP());
-      } else {
-        processAction = new UDPClient(params.getClientParametersUDP());
-      }
-    }
-
-    return processAction;
-  }
+public interface SocketClient {
+  public void sendMessage(String msg);
+  public String readMessage();
+  public ObjectProperty<Boolean> connectedProperty();
 }

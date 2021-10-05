@@ -34,16 +34,18 @@ import java.net.UnknownHostException;
 
 import com.ioleak.jnetcat.common.Logging;
 import com.ioleak.jnetcat.common.interfaces.ProcessAction;
+import com.ioleak.jnetcat.common.properties.ObjectProperty;
 import com.ioleak.jnetcat.options.startup.ClientParametersUDP;
 
 public class UDPClient
-        implements ProcessAction {
+        implements ProcessAction, SocketClient {
 
   private DatagramSocket clientSocket;
-  private String ip;
-  private int port;
-
-  private int soTimeout;
+  private final String ip;
+  private final int port;
+  private final int soTimeout;
+  
+  private final ObjectProperty<Boolean> connectedProperty = new ObjectProperty<>(false);
 
   public UDPClient(ClientParametersUDP clientParametersUDP) {
     this.ip = clientParametersUDP.getIp();
@@ -99,6 +101,11 @@ public class UDPClient
     return true;
   }
 
+  @Override
+  public ObjectProperty<Boolean> connectedProperty() {
+    return connectedProperty;
+  }
+  
   @Override
   public boolean stopActiveExecution() {
     throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
