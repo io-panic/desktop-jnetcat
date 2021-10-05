@@ -23,12 +23,16 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.ioleak.jnetcat.client;
+package com.ioleak.jnetcat.client.exception;
 
 public class ClientSendMessageException
         extends RuntimeException {
 
   public ClientSendMessageException(String msg) {
     super(msg);
+  }
+
+  public ClientSendMessageException(String msg, Exception ex) {
+    super(msg, ex);
   }
 }

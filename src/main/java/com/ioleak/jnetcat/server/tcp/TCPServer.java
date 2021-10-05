@@ -34,6 +34,7 @@ import java.util.List;
 import com.ioleak.jnetcat.common.Logging;
 import com.ioleak.jnetcat.options.startup.ServerParametersTCP;
 import com.ioleak.jnetcat.server.generic.Listener;
+import com.ioleak.jnetcat.server.tcp.exception.TCPServerUnitializatedStartException;
 
 public class TCPServer
         extends Listener<TCPServerType, Socket> {
@@ -50,7 +51,7 @@ public class TCPServer
   }
 
   @Override
-  public void startServer() {
+  public void start() {
     serverState = TCPServerState.STARTING;
     Logging.getLogger().info(String.format("Server act as a server: %s", getServerType().toString()));
 
@@ -87,6 +88,12 @@ public class TCPServer
 
     serverState = TCPServerState.CLOSED;
     Logging.getLogger().warn(String.format("Server closed on defined port %d", getPort()));
+  }
+
+  @Override
+  public boolean isRunning() {
+    return (serverState == TCPServerState.WAITING_FOR_CONNECTION
+            || serverState == TCPServerState.CLIENT_CONNECTED);
   }
 
   @Override

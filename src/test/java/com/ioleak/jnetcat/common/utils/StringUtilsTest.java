@@ -91,11 +91,11 @@ public class StringUtilsTest {
 
   @Test
   public void generateRandomString_LengthOutOfBound_AsExpected() {
-    assertTrue(StringUtils.generateRandomString(-64).length() == 0);   
-    assertTrue(StringUtils.generateRandomString(-10).length() == 0);    
+    assertTrue(StringUtils.generateRandomString(-64).length() == 0);
+    assertTrue(StringUtils.generateRandomString(-10).length() == 0);
     assertTrue(StringUtils.generateRandomString(0).length() == 0);
   }
-  
+
   @Test
   public void generateRandomString_LengthVaria_AsExpected() {
     assertTrue(StringUtils.generateRandomString(10).length() == 10);

@@ -23,12 +23,12 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.ioleak.jnetcat.common.parsers;
+package com.ioleak.jnetcat.server.tcp.exception;
 
-public class UnknownArgumentParserException
+public class TCPServerUnitializatedStartException
         extends RuntimeException {
 
-  public UnknownArgumentParserException(String msg) {
+  public TCPServerUnitializatedStartException(String msg) {
     super(msg);
   }
 }

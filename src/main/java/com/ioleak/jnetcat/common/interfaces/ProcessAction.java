@@ -27,6 +27,10 @@ package com.ioleak.jnetcat.common.interfaces;
 
 public interface ProcessAction {
 
+  public void start();
+
+  public boolean isRunning();
+
   public boolean stopActiveExecution();
 
   public boolean stopExecutions();

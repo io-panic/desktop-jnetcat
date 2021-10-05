@@ -46,7 +46,7 @@ public class UDPServer
   }
 
   @Override
-  public void startServer() {
+  public void start() {
     try (DatagramSocket serverSocket = new DatagramSocket(getPort())) {
 
       while (true) {
@@ -65,6 +65,11 @@ public class UDPServer
     } catch (IOException ex) {
       Logging.getLogger().info(String.format("Unable to start UDP listener"));
     }
+  }
+
+  @Override
+  public boolean isRunning() {
+    return true;
   }
 
   @Override

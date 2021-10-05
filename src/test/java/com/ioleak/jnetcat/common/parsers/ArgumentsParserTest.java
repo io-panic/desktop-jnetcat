@@ -28,6 +28,9 @@ package com.ioleak.jnetcat.common.parsers;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.ioleak.jnetcat.common.parsers.exception.IllegalArgumentParserException;
+import com.ioleak.jnetcat.common.parsers.exception.ParserNotInitializatedException;
+import com.ioleak.jnetcat.common.parsers.exception.UnknownArgumentParserException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -60,7 +63,7 @@ public class ArgumentsParserTest {
     argumentsParser.setArguments(null);
     assertFalse(argumentsParser.switchPresent("-f"));
 
-    argumentsParser.setArguments(new String[]{});
+    argumentsParser.setArguments(new String[] {});
     assertFalse(argumentsParser.switchPresent("-f"));
 
     assertEquals("file1.txt", argumentsParser.switchValue("-f", "file1.txt"),
@@ -69,7 +72,7 @@ public class ArgumentsParserTest {
 
   @Test
   public void switchValue_EmptyValue_SwitchPresentWithDefault() {
-    argumentsParser.setArguments(new String[]{"-f"});
+    argumentsParser.setArguments(new String[] {"-f"});
     boolean fileSwitch = argumentsParser.switchPresent("-f");
 
     assertTrue(fileSwitch, "Switch should be present");
@@ -79,7 +82,7 @@ public class ArgumentsParserTest {
 
   @Test
   public void switchValue_EmptyValue_SwitchPresentWithValue() {
-    argumentsParser.setArguments(new String[]{"-f", "file1.txt"});
+    argumentsParser.setArguments(new String[] {"-f", "file1.txt"});
     boolean fileSwitch = argumentsParser.switchPresent("-f");
 
     assertTrue(fileSwitch, "Switch should be present");
@@ -89,7 +92,7 @@ public class ArgumentsParserTest {
 
   @Test
   public void switchLongValue_EmptyValue_SwitchPresentWithEmpty() {
-    argumentsParser.setArguments(new String[]{"-d"});
+    argumentsParser.setArguments(new String[] {"-d"});
     boolean numSwitch = argumentsParser.switchPresent("-d");
 
     assertTrue(numSwitch, "Switch should be present");
@@ -99,7 +102,7 @@ public class ArgumentsParserTest {
 
   @Test
   public void switchLongValue_ProvideValue_SwitchPresentWithValue() {
-    argumentsParser.setArguments(new String[]{"-d", "512"});
+    argumentsParser.setArguments(new String[] {"-d", "512"});
     boolean fileSwitch = argumentsParser.switchPresent("-d");
 
     assertTrue(fileSwitch, "Switch should be present");
@@ -109,7 +112,7 @@ public class ArgumentsParserTest {
 
   @Test
   public void switchDoubleValue_EmptyValue_SwitchPresentWithEmpty() {
-    argumentsParser.setArguments(new String[]{"-d"});
+    argumentsParser.setArguments(new String[] {"-d"});
     boolean numSwitch = argumentsParser.switchPresent("-d");
 
     assertTrue(numSwitch, "Switch should be present");
@@ -119,7 +122,7 @@ public class ArgumentsParserTest {
 
   @Test
   public void switchDoubleValue_ProvideValue_SwitchPresentWithValue() {
-    argumentsParser.setArguments(new String[]{"-d", "756.29"});
+    argumentsParser.setArguments(new String[] {"-d", "756.29"});
     boolean fileSwitch = argumentsParser.switchPresent("-d");
 
     assertTrue(fileSwitch, "Switch should be present");
@@ -129,7 +132,7 @@ public class ArgumentsParserTest {
 
   @Test
   public void switchValues_DoubleString_ArraySize2() {
-    argumentsParser.setArguments(new String[]{"-f", "file1.txt", "file2.txt"});
+    argumentsParser.setArguments(new String[] {"-f", "file1.txt", "file2.txt"});
     boolean fileSwitch = argumentsParser.switchPresent("-f");
 
     assertTrue(fileSwitch, "Switch should be present");
@@ -138,7 +141,7 @@ public class ArgumentsParserTest {
 
   @Test
   public void switchValues_EmptyString_ArraySizeEmpty() {
-    argumentsParser.setArguments(new String[]{"-f"});
+    argumentsParser.setArguments(new String[] {"-f"});
     boolean fileSwitch = argumentsParser.switchPresent("-f");
 
     assertTrue(fileSwitch, "Switch should be present");
@@ -148,12 +151,12 @@ public class ArgumentsParserTest {
 
   @Test
   public void setArguments_UnknownParameter_ExceptionThrown() {
-    assertThrows(UnknownArgumentParserException.class, () -> argumentsParser.setArguments(new String[]{"-i"}));
+    assertThrows(UnknownArgumentParserException.class, () -> argumentsParser.setArguments(new String[] {"-i"}));
   }
 
   @Test
   public void setArguments_OptionNoMatch_ExceptionThrown() {
-    assertThrows(IllegalArgumentParserException.class, () -> argumentsParser.setArguments(new String[]{"wrongArg"}));
-    assertThrows(IllegalArgumentParserException.class, () -> argumentsParser.setArguments(new String[]{"wrongArg", "-f", "test.txt"}));
+    assertThrows(IllegalArgumentParserException.class, () -> argumentsParser.setArguments(new String[] {"wrongArg"}));
+    assertThrows(IllegalArgumentParserException.class, () -> argumentsParser.setArguments(new String[] {"wrongArg", "-f", "test.txt"}));
   }
 }

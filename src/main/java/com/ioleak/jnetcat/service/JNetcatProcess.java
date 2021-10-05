@@ -23,17 +23,15 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.ioleak.jnetcat;
+package com.ioleak.jnetcat.service;
 
 import java.io.File;
 
-import com.ioleak.jnetcat.client.TCPClient;
-import com.ioleak.jnetcat.client.UDPClient;
 import com.ioleak.jnetcat.common.interfaces.ProcessAction;
 import com.ioleak.jnetcat.common.utils.JsonUtils;
 import com.ioleak.jnetcat.options.JNetcatParameters;
-import com.ioleak.jnetcat.server.tcp.TCPServer;
-import com.ioleak.jnetcat.server.udp.UDPServer;
+import com.ioleak.jnetcat.service.exception.JNetcatProcessFileNotSetException;
+import com.ioleak.jnetcat.service.exception.JNetcatProcessRunningException;
 
 public enum JNetcatProcess
         implements Runnable {
@@ -59,37 +57,16 @@ public enum JNetcatProcess
 
   public void run(JNetcatParameters params) {
     if (getResultExecution() == JNetcatProcessResult.IN_PROGRESS) {
-      throw new JNetcatProcessRunningException("An execution is already running");
+      throw new JNetcatProcessRunningException("An execution is already in progress");
     }
 
     resultExecution = JNetcatProcessResult.IN_PROGRESS;
 
     if (params != null) {
-      if (params.isStartAsServer()) {
-        if (params.isUseProtocolTCP()) {
-          TCPServer tcpListener = new TCPServer(params.getServerParametersTCP());
-          processAction = tcpListener;
-          tcpListener.startServer();
-        } else {
-          UDPServer udpListener = new UDPServer(params.getServerParametersUDP());
-          processAction = udpListener;
-          udpListener.startServer();
-        }
-      } else {
-        if (params.isUseProtocolTCP()) {
-          TCPClient tcpClient = new TCPClient(params.getClientParametersTCP());
-          processAction = tcpClient;
-          tcpClient.open();
+      processAction = JNetcatProcessFactory.createProcess(params);
+      processAction.start();
 
-          if (!tcpClient.connectedProperty().get()) {
-            resultExecution = JNetcatProcessResult.CONNECTION_FAILED;
-          }
-        } else {
-          UDPClient udpConnect = new UDPClient(params.getClientParametersUDP());
-          processAction = udpConnect;
-          udpConnect.open();
-        }
-      }
+      resultExecution = processAction.isRunning() ? JNetcatProcessResult.SUCCESS : resultExecution;
     } else {
       resultExecution = JNetcatProcessResult.ERROR;
     }

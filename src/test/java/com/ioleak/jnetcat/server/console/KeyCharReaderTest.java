@@ -50,7 +50,6 @@ public class KeyCharReaderTest {
   private boolean hitKeyS = false;
   private boolean hitKeyQ = false;
 
-  
   @BeforeEach
   public void setUp() {
     keyCharReader = new KeyCharReader(this::hitKeyS, this::hitKeyQ);

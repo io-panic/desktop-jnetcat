@@ -36,8 +36,6 @@ public abstract class Listener<T, S>
 
   private final ListProperty<S> connectionClients = new ListProperty<>();
 
-  public abstract void startServer();
-
   public Listener(T serverType, int port) {
     setServerType(serverType);
     setPort(port);

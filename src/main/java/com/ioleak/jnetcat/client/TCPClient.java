@@ -31,6 +31,8 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 
+import com.ioleak.jnetcat.client.exception.ClientReadMessageException;
+import com.ioleak.jnetcat.client.exception.ClientSendMessageException;
 import com.ioleak.jnetcat.common.Logging;
 import com.ioleak.jnetcat.common.interfaces.ProcessAction;
 import com.ioleak.jnetcat.common.properties.ObjectProperty;
@@ -39,28 +41,31 @@ import com.ioleak.jnetcat.options.startup.ClientParametersTCP;
 public class TCPClient
         implements ProcessAction {
 
-  private Socket clientSocket;
+  private static final String EXCEPTION_CLIENT_NOT_CONNECTED = "Client is not connected to a server: %s";
 
+  private Socket clientSocket;
   private final String ip;
   private final int port;
+  private final int soTimeout;
+
   private final ObjectProperty<Boolean> connectedProperty = new ObjectProperty<>(false);
 
   public TCPClient(ClientParametersTCP clientParametersTCP) {
-    this(clientParametersTCP.getIp(), clientParametersTCP.getPort());
+    this.ip = clientParametersTCP.getIp();
+    this.port = clientParametersTCP.getPort();
+    this.soTimeout = clientParametersTCP.getSoTimeout();
   }
 
-  private TCPClient(String ip, int port) {
-    this.ip = ip;
-    this.port = port;
-  }
-
-  public TCPClient open() {
+  @Override
+  public void start() {
     try {
       if (connectedProperty().get()) {
         Logging.getLogger().warn(String.format("TCP connection already open on %s:%d", ip, port));
       } else {
         Logging.getLogger().info(String.format("Trying to open a TCP connection [%s:%s]", ip, port));
         clientSocket = new Socket(ip, port);
+        clientSocket.setSoTimeout(soTimeout);
+
         Logging.getLogger().info(String.format("TCP connection established on %s:%d", ip, port));
       }
     } catch (IOException ex) {
@@ -68,13 +73,11 @@ public class TCPClient
     } finally {
       updateConnectedProperty();
     }
-
-    return this;
   }
 
   public void sendMessage(String msg) {
     if (!connectedProperty().get()) {
-      throw new ClientNotConnectedException("Client must be connected");
+      throw new ClientSendMessageException(EXCEPTION_CLIENT_NOT_CONNECTED);
     }
 
     try {
@@ -86,9 +89,8 @@ public class TCPClient
 
       if (printWriter.checkError()) {
         clientSocket.close();
-        throw new ClientNotConnectedException("Unable to sendMessage: socket not connected");
+        throw new ClientSendMessageException(EXCEPTION_CLIENT_NOT_CONNECTED);
       }
-
     } catch (IOException ex) {
       Logging.getLogger().error(String.format("sendMessage error: ", ex.getMessage()));
       if (clientSocket != null) {
@@ -105,7 +107,7 @@ public class TCPClient
 
   public String readMessage() {
     if (!connectedProperty().get()) {
-      throw new ClientNotConnectedException("Client must be connected");
+      throw new ClientReadMessageException(EXCEPTION_CLIENT_NOT_CONNECTED);
     }
 
     String readData = "";
@@ -116,7 +118,7 @@ public class TCPClient
 
       if (readData == null) {
         clientSocket.close();
-        throw new ClientNotConnectedException("Unable to read message: client not connected");
+        throw new ClientReadMessageException(EXCEPTION_CLIENT_NOT_CONNECTED);
       }
     } catch (IOException ex) {
       Logging.getLogger().error("Unable to read message from socket", ex);
@@ -141,6 +143,11 @@ public class TCPClient
     }
   }
 
+  @Override
+  public boolean isRunning() {
+    return connectedProperty().get();
+  }
+
   public ObjectProperty<Boolean> connectedProperty() {
     return connectedProperty;
   }
@@ -161,7 +168,7 @@ public class TCPClient
     try {
       printWriter = new PrintWriter(clientSocket.getOutputStream(), false);
     } catch (IOException ex) {
-      throw new ClientSendMessageException(ex.getMessage());
+      throw new ClientSendMessageException("An error occured on the OutputStream", ex);
     } finally {
       updateConnectedProperty();
     }
@@ -175,7 +182,7 @@ public class TCPClient
     try {
       bufferedReader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
     } catch (IOException ex) {
-      throw new ClientReadMessageException(ex.getMessage());
+      throw new ClientReadMessageException("An error occured on the InputStream", ex);
     } finally {
       updateConnectedProperty();
     }

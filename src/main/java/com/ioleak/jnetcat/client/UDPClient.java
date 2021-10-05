@@ -25,13 +25,12 @@
  */
 package com.ioleak.jnetcat.client;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.net.SocketTimeoutException;
+import java.net.SocketException;
+import java.net.UnknownHostException;
 
 import com.ioleak.jnetcat.common.Logging;
 import com.ioleak.jnetcat.common.interfaces.ProcessAction;
@@ -41,63 +40,63 @@ public class UDPClient
         implements ProcessAction {
 
   private DatagramSocket clientSocket;
-  private PrintWriter out;
-  private BufferedReader in;
-
   private String ip;
   private int port;
 
+  private int soTimeout;
+
   public UDPClient(ClientParametersUDP clientParametersUDP) {
-    this(clientParametersUDP.getIp(), clientParametersUDP.getPort());
+    this.ip = clientParametersUDP.getIp();
+    this.port = clientParametersUDP.getPort();
+    this.soTimeout = clientParametersUDP.getSoTimeout();
   }
 
-  private UDPClient(String ip, int port) {
-    this.ip = ip;
-    this.port = port;
+  @Override
+  public void start() {
+    try {
+      clientSocket = new DatagramSocket();
+      clientSocket.setSoTimeout(soTimeout);
+
+      Logging.getLogger().info(String.format("Openning connection UDP: %s", ip));
+
+    } catch (SocketException ex) {
+      Logging.getLogger().error("Socket error", ex);
+    }
   }
 
-  public UDPClient open() {
+  public void sendMessage(String message) {
     try {
       InetAddress address = InetAddress.getByName(ip);
-      clientSocket = new DatagramSocket();
 
-      Logging.getLogger().info("Openning connection UDP");
-
-      DatagramPacket request = new DatagramPacket(new byte[1], 1, address, port);
+      DatagramPacket request = new DatagramPacket(message.getBytes(), message.getBytes().length, address, port);
       clientSocket.send(request);
 
-    } catch (SocketTimeoutException ex) {
-      System.out.println("Timeout error: " + ex.getMessage());
-      ex.printStackTrace();
-    } catch (IOException ex) {
-      System.out.println("Client error: " + ex.getMessage());
-      ex.printStackTrace();
-    }
+      Logging.getLogger().info(String.format("Sending [to: %s] message: %s", address.getHostAddress(), message));
 
-    return this;
+    } catch (UnknownHostException ex) {
+      Logging.getLogger().error("Unknown host", ex);
+    } catch (IOException ex) {
+      Logging.getLogger().error("Error on link", ex);
+    }
   }
 
-  public void read() {
+  public String readMessage() {
     byte[] buffer = new byte[512];
     DatagramPacket response = new DatagramPacket(buffer, buffer.length);
 
     try {
       clientSocket.receive(response);
+
     } catch (IOException ex) {
-      System.out.println("Client error: " + ex.getMessage());
-      ex.printStackTrace();
+      Logging.getLogger().error("Error on link", ex);
     }
 
-    String quote = new String(buffer, 0, response.getLength());
-
-    System.out.println(quote);
-    System.out.println();
+    return new String(buffer, 0, response.getLength());
   }
 
-  public static void main(String[] args) {
-    UDPClient udpConnect = new UDPClient("djxmmx.net", 17);
-    udpConnect.open();
-    udpConnect.read();
+  @Override
+  public boolean isRunning() {
+    return true;
   }
 
   @Override

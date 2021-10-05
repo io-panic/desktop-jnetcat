@@ -23,18 +23,20 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.ioleak.jnetcat;
+package com.ioleak.jnetcat.service;
 
 import java.io.File;
 
-import com.ioleak.jnetcat.client.ClientNotConnectedException;
 import com.ioleak.jnetcat.client.TCPClient;
+import com.ioleak.jnetcat.client.exception.ClientSendMessageException;
 import com.ioleak.jnetcat.common.Logging;
 import com.ioleak.jnetcat.common.utils.ThreadUtils;
 import com.ioleak.jnetcat.options.JNetcatParameters;
 import com.ioleak.jnetcat.options.startup.ClientParametersTCP;
 import com.ioleak.jnetcat.options.startup.ServerParametersTCP;
 import com.ioleak.jnetcat.server.tcp.TCPServerType;
+import com.ioleak.jnetcat.service.exception.JNetcatProcessFileNotSetException;
+import com.ioleak.jnetcat.service.exception.JNetcatProcessRunningException;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
 import org.junit.jupiter.api.Order;
@@ -54,7 +56,7 @@ public class JNetcatProcessTest {
 
   private static final int THREAD_MAX_WAIT_MS = 10000;
   private static final int THREAD_MIN_WAIT_MS = 100;
-  
+
   private static final int LISTEN_PORT = 41959;
 
   private JNetcatProcess jNetcatProcess;
@@ -99,7 +101,7 @@ public class JNetcatProcessTest {
     };
 
     jNetcatThread.start();
-    ThreadUtils.waitForThread(() ->  jNetcatProcess.getResultExecution() != JNetcatProcessResult.IN_PROGRESS);
+    ThreadUtils.waitForThread(() -> jNetcatProcess.getResultExecution() != JNetcatProcessResult.IN_PROGRESS);
 
     assertEquals(JNetcatProcessResult.IN_PROGRESS, jNetcatProcess.getResultExecution());
   }
@@ -118,13 +120,13 @@ public class JNetcatProcessTest {
   public void stopActiveExecution_ThreadOrder3_KeepInProgressStatus() {
     final ClientParametersTCP clientParametersTCP = new ClientParametersTCP.ParametersBuilder("127.0.0.1", LISTEN_PORT).build();
     final TCPClient tcpClient = new TCPClient(clientParametersTCP);
-    
-    tcpClient.open();
+
+    tcpClient.start();
     assertTrue(tcpClient.connectedProperty().get());
-    
+
     jNetcatProcess.stopActiveExecution();
-    
-    assertThrows(ClientNotConnectedException.class, () -> tcpClient.sendMessage("Test message"));
+
+    assertThrows(ClientSendMessageException.class, () -> tcpClient.sendMessage("Test message"));
     assertFalse(tcpClient.connectedProperty().get());
     assertEquals(JNetcatProcessResult.IN_PROGRESS, jNetcatProcess.getResultExecution());
   }
@@ -133,7 +135,7 @@ public class JNetcatProcessTest {
   @Order(4)
   public void stopExecutions_ThreadOrder4_SuccessCode() {
     Logging.getLogger().warn(String.format("Executing: %s", new Throwable().getStackTrace()[0].getMethodName()));
-    
+
     jNetcatProcess.stopExecutions();
 
     try {

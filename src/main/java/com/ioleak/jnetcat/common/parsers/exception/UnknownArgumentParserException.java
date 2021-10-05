@@ -23,12 +23,12 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.ioleak.jnetcat.client;
+package com.ioleak.jnetcat.common.parsers.exception;
 
-public class ClientNotConnectedException
+public class UnknownArgumentParserException
         extends RuntimeException {
 
-  public ClientNotConnectedException(String msg) {
+  public UnknownArgumentParserException(String msg) {
     super(msg);
   }
 }

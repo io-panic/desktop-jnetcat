@@ -36,6 +36,8 @@ public abstract class ClientParameters
   private final String ip;
   private final Integer port;
 
+  private final int soTimeout;
+
   private final int nbClientMax;
   private final int nbExecution;
   private final int sleepBetweenExecMs;
@@ -44,6 +46,7 @@ public abstract class ClientParameters
 
     private int port = -1;
     private String ip = "0.0.0.0";
+    private int soTimeout = 0;
 
     private int nbClientMax = 1;
     private int nbExecution = 1;
@@ -56,6 +59,11 @@ public abstract class ClientParameters
     public ParametersBuilder(String ip, int port) {
       this.ip = ip;
       this.port = port;
+    }
+
+    public T withSoTimeout(int soTimeout) {
+      this.soTimeout = soTimeout;
+      return self();
     }
 
     public T withNbClientMax(int nbClientMax) {
@@ -85,6 +93,7 @@ public abstract class ClientParameters
 
     this.ip = builder.ip;
     this.port = builder.port;
+    this.soTimeout = builder.soTimeout;
     this.nbClientMax = builder.nbClientMax;
     this.nbExecution = builder.nbExecution;
     this.sleepBetweenExecMs = builder.sleepBetweenExecMs;
@@ -96,6 +105,10 @@ public abstract class ClientParameters
 
   public Integer getPort() {
     return port;
+  }
+
+  public int getSoTimeout() {
+    return soTimeout;
   }
 
   public int getNbClientMax() {

@@ -25,6 +25,23 @@
  */
 package com.ioleak.jnetcat.client;
 
+import com.ioleak.jnetcat.options.startup.ClientParametersUDP;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+
 public class UDPClientTest {
 
+  @Test
+  @Disabled("In progress")
+  public void test() {
+    ClientParametersUDP clientParametersUDP = new ClientParametersUDP.ParametersBuilder("127.0.0.1", 1234).withSoTimeout(0).build();
+    //UDPClient udpConnect = new UDPClient("djxmmx.net", 17);
+
+    UDPClient udpConnect = new UDPClient(clientParametersUDP);
+    udpConnect.start();
+    udpConnect.sendMessage("1");
+    System.out.println(udpConnect.readMessage());
+    udpConnect.sendMessage("2");
+    System.out.println(udpConnect.readMessage());
+  }
 }

@@ -27,12 +27,11 @@ package com.ioleak.jnetcat.server.tcp;
 
 import java.io.IOException;
 import java.net.Socket;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import com.ioleak.jnetcat.common.Logging;
 import com.ioleak.jnetcat.common.utils.ThreadUtils;
 import com.ioleak.jnetcat.options.startup.ServerParametersTCP;
+import com.ioleak.jnetcat.server.tcp.exception.TCPServerUnitializatedStartException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -52,7 +51,7 @@ public class TCPServerTest {
   @BeforeEach
   public void setUp() {
     tcpServer = getTcpServer();
-    tcpServerThread = new Thread(tcpServer::startServer);
+    tcpServerThread = new Thread(tcpServer::start);
     tcpServerThread.start();
   }
 
@@ -71,7 +70,7 @@ public class TCPServerTest {
   @Test
   public void getLocalPort_ServerNotStarted_ExceptionThrown() {
     TCPServer tcpTmpServer = getTcpServer();
-    
+
     assertEquals(TCPServerState.NOT_STARTED, tcpTmpServer.getServerState());
     assertThrows(TCPServerUnitializatedStartException.class, () -> tcpTmpServer.getLocalPort());
   }
@@ -92,10 +91,10 @@ public class TCPServerTest {
       assertEquals(TCPServerState.WAITING_FOR_CONNECTION, tcpServer.getServerState());
 
       Socket client = new Socket("127.0.0.1", tcpServer.getLocalPort());
-      
+
       ThreadUtils.waitForThread(() -> tcpServer.getServerState() != TCPServerState.WAITING_FOR_CONNECTION);
-      assertTrue(tcpServer.getServerState().equals(TCPServerState.CLIENT_CONNECTED) || 
-                 tcpServer.getServerState().equals(TCPServerState.WAITING_FOR_CONNECTION));
+      assertTrue(tcpServer.getServerState().equals(TCPServerState.CLIENT_CONNECTED)
+                 || tcpServer.getServerState().equals(TCPServerState.WAITING_FOR_CONNECTION));
 
       isConnected = !client.isClosed() && client.isConnected();
       client.close();
@@ -113,10 +112,10 @@ public class TCPServerTest {
     boolean isConnected = true;
 
     Logging.getLogger().info(new Throwable().getStackTrace()[0].getMethodName());
-    
+
     ThreadUtils.waitForThread(() -> tcpServer.getServerState() != TCPServerState.WAITING_FOR_CONNECTION);
     assertEquals(TCPServerState.WAITING_FOR_CONNECTION, tcpServer.getServerState());
-    
+
     try {
 
       Socket client = new Socket("127.0.0.1", tcpServer.getLocalPort());
@@ -125,40 +124,40 @@ public class TCPServerTest {
 
       ThreadUtils.waitForThread(() -> tcpServer.getServerState() != TCPServerState.WAITING_FOR_CONNECTION);
       tcpServer.stopActiveExecution();
-      
+
       client.sendUrgentData(1);
       isConnected = client.getInputStream().read() != -1;
       client.close();
-      
+
     } catch (IOException ex) {
       Logging.getLogger().error("An error occured", ex);
       isConnected = false;
     }
-    
+
     assertFalse(isConnected);
     assertEquals(0, tcpServer.getConnectedClientsNumber());
     assertEquals(TCPServerState.WAITING_FOR_CONNECTION, tcpServer.getServerState());
   }
-  
+
   @Test
   public void stopExecutions_ServerState_ClosedNoConnectionLeft() {
     Socket client;
 
     ThreadUtils.waitForThread(() -> tcpServer.getServerState() != TCPServerState.WAITING_FOR_CONNECTION);
-   
+
     try {
       client = new Socket("127.0.0.1", tcpServer.getLocalPort());
       client.close();
     } catch (IOException ex) {
-      Logger.getLogger(TCPServerTest.class.getName()).log(Level.SEVERE, null, ex);
+      Logging.getLogger().error("An error occured while opening/closing a client", ex);
     }
-    
+
     ThreadUtils.waitForThread(() -> tcpServer.getServerState() != TCPServerState.WAITING_FOR_CONNECTION);
     assertEquals(1, tcpServer.getConnectedClientsNumber());
-    
+
     tcpServer.stopExecutions();
     ThreadUtils.waitForThread(() -> tcpServer.getServerState() != TCPServerState.CLOSED);
-    
+
     assertEquals(0, tcpServer.getConnectedClientsNumber());
     assertEquals(TCPServerState.CLOSED, tcpServer.getServerState());
   }

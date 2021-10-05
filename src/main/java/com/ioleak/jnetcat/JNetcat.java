@@ -25,6 +25,8 @@
  */
 package com.ioleak.jnetcat;
 
+import com.ioleak.jnetcat.service.JNetcatProcess;
+
 import java.io.File;
 import java.net.URISyntaxException;
 import java.net.URL;

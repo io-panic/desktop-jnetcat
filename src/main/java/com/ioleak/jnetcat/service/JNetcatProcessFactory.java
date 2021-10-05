@@ -23,12 +23,42 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.ioleak.jnetcat.options.exception;
+package com.ioleak.jnetcat.service;
 
-public class ClientServerArgumentException
-        extends RuntimeException {
+import com.ioleak.jnetcat.client.TCPClient;
+import com.ioleak.jnetcat.client.UDPClient;
+import com.ioleak.jnetcat.common.interfaces.ProcessAction;
+import com.ioleak.jnetcat.options.JNetcatParameters;
+import com.ioleak.jnetcat.server.tcp.TCPServer;
+import com.ioleak.jnetcat.server.udp.UDPServer;
 
-  public ClientServerArgumentException(String msg) {
-    super(msg);
+public class JNetcatProcessFactory {
+
+  public static ProcessAction createProcess(JNetcatParameters params) {
+    ProcessAction processAction;
+
+    if (params.isStartAsServer()) {
+      if (params.isUseProtocolTCP()) {
+        processAction = new TCPServer(params.getServerParametersTCP());
+      } else {
+        processAction = new UDPServer(params.getServerParametersUDP());
+      }
+    } else {
+      if (params.isUseProtocolTCP()) {
+        processAction = new TCPClient(params.getClientParametersTCP());
+
+        /*
+         * if (!tcpClient.connectedProperty().get()) {
+         * resultExecution = JNetcatProcessResult.CONNECTION_FAILED;
+         * }
+         */
+      } else {
+        processAction = new UDPClient(params.getClientParametersUDP());
+      }
+
+      processAction.start();
+    }
+
+    return processAction;
   }
 }

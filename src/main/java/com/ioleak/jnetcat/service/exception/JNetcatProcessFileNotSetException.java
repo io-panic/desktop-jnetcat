@@ -23,12 +23,12 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.ioleak.jnetcat.common.parsers;
+package com.ioleak.jnetcat.service.exception;
 
-public class ParserNotInitializatedException
+public class JNetcatProcessFileNotSetException
         extends RuntimeException {
 
-  public ParserNotInitializatedException(String msg) {
+  public JNetcatProcessFileNotSetException(String msg) {
     super(msg);
   }
 }

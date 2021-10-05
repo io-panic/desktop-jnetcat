@@ -46,7 +46,7 @@ public class FileWatcherTest {
 
   private static final File TEMP_FILE = new File(String.format("%s.txt", StringUtils.generateRandomString(8)));
   private static final int ADD_DELAY_TO_MODIFY_FILE_DATE = 1250;
-  
+
   FileWatcher fileWatcher;
   private boolean fileWasUpdated;
 
@@ -111,7 +111,7 @@ public class FileWatcherTest {
 
     createFile(TEMP_FILE);
     TEMP_FILE.setLastModified(Instant.now().plus(1, ChronoUnit.HOURS).toEpochMilli());
-    
+
     fileWatcher.run();
     assertTrue(fileWasUpdated);
   }
@@ -128,7 +128,7 @@ public class FileWatcherTest {
     }
 
     assertEquals(true, fileCreated, "The file must be created and exists to detect change");
-    
+
     return fileCreated;
   }
 }
