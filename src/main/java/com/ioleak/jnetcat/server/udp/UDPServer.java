@@ -49,14 +49,13 @@ public class UDPServer
   public void start() {
     try (DatagramSocket serverSocket = new DatagramSocket(getPort())) {
 
-      while (true) {
+      while (!Thread.currentThread().isInterrupted()) {
         getConnectionClients().add(serverSocket);
         Logging.getLogger().info(String.format("Connection received from %s", serverSocket.getRemoteSocketAddress()));
 
         try {
           getServerType().getClient().startClient(serverSocket);
         } catch (SocketException ex) {
-          System.out.println();
           Logging.getLogger().info(String.format("Socket failure: %s", ex.getMessage()));
         }
 
@@ -68,7 +67,7 @@ public class UDPServer
   }
 
   @Override
-  public boolean isRunning() {
+  public boolean isStateSuccessful() {
     return true;
   }
 

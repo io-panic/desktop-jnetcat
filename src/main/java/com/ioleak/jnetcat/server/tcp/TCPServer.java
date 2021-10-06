@@ -91,9 +91,8 @@ public class TCPServer
   }
 
   @Override
-  public boolean isRunning() {
-    return (serverState == TCPServerState.WAITING_FOR_CONNECTION
-            || serverState == TCPServerState.CLIENT_CONNECTED);
+  public boolean isStateSuccessful() {
+    return (serverState == TCPServerState.CLOSED);
   }
 
   @Override

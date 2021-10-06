@@ -43,12 +43,17 @@ public enum JNetcatProcess
   private JNetcatProcessResult resultExecution = JNetcatProcessResult.UNKNOWN;
 
   private ProcessAction processAction;
+  private ExitConsumer<JNetcatProcessResult, JNetcatParameters> exitMethod;
 
   private JNetcatProcess() {
   }
 
   public void setJsonParamsFile(File jsonParamsFile) {
     this.jsonParamsFile = jsonParamsFile;
+  }
+
+  public void setExitMethod(ExitConsumer<JNetcatProcessResult, JNetcatParameters> exitMethod) {
+    this.exitMethod = exitMethod;
   }
 
   @Override
@@ -68,13 +73,15 @@ public enum JNetcatProcess
       processAction = JNetcatProcessFactory.createProcess(params);
       processAction.start();
 
-      resultExecution = processAction.isRunning() ? JNetcatProcessResult.SUCCESS : resultExecution;
+      resultExecution = processAction.isStateSuccessful() ? JNetcatProcessResult.SUCCESS : JNetcatProcessResult.FAILED;
     } else {
       resultExecution = JNetcatProcessResult.ERROR;
     }
 
-    resultExecution = resultExecution == JNetcatProcessResult.IN_PROGRESS
-                      ? JNetcatProcessResult.SUCCESS : resultExecution;
+    resultExecution = resultExecution == JNetcatProcessResult.IN_PROGRESS ? JNetcatProcessResult.SUCCESS : resultExecution;
+    if (exitMethod != null) {
+      exitMethod.accept(resultExecution, params);
+    }
   }
 
   private JNetcatParameters getParametersFromFile() {

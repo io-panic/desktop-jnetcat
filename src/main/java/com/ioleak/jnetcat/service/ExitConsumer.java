@@ -23,15 +23,10 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.ioleak.jnetcat.client;
+package com.ioleak.jnetcat.service;
 
-import com.ioleak.jnetcat.common.properties.ObjectProperty;
+@FunctionalInterface
+public interface ExitConsumer<T, U> {
 
-public interface SocketClient {
-
-  public void sendMessage(String msg);
-
-  public String readMessage();
-
-  public ObjectProperty<Boolean> connectedProperty();
+  public void accept(T resultExecution, U params);
 }

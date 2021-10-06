@@ -41,6 +41,7 @@ public class JNetcatParameters
 
   private final boolean startAsServer;
   private final boolean useProtocolTCP;
+  private final boolean daemon;
 
   private final ClientParametersTCP clientParametersTCP;
   private final ClientParametersUDP clientParametersUDP;
@@ -52,6 +53,7 @@ public class JNetcatParameters
 
     private boolean startAsServer = false;
     private boolean useProtocolTCP = false;
+    private boolean daemon = false;
 
     private ClientParametersTCP clientParametersTCP;
     private ClientParametersUDP clientParametersUDP;
@@ -63,6 +65,11 @@ public class JNetcatParameters
                              @JsonProperty("useProtocolTCP") boolean useProtocolTCP) {
       this.startAsServer = startAsServer;
       this.useProtocolTCP = useProtocolTCP;
+    }
+
+    public ParametersBuilder withDaemon(boolean daemon) {
+      this.daemon = daemon;
+      return this;
     }
 
     public ParametersBuilder withClientParametersTCP(ClientParametersTCP clientParametersTCP) {
@@ -93,6 +100,8 @@ public class JNetcatParameters
   public JNetcatParameters(ParametersBuilder builder) {
     this.startAsServer = builder.startAsServer;
     this.useProtocolTCP = builder.useProtocolTCP;
+    this.daemon = builder.daemon;
+
     this.clientParametersTCP = builder.clientParametersTCP;
     this.serverParametersTCP = builder.serverParametersTCP;
     this.clientParametersUDP = builder.clientParametersUDP;
@@ -107,6 +116,10 @@ public class JNetcatParameters
 
   public boolean isUseProtocolTCP() {
     return useProtocolTCP;
+  }
+
+  public boolean isDaemon() {
+    return daemon;
   }
 
   public ClientParametersTCP getClientParametersTCP() {

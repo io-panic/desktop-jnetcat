@@ -32,6 +32,8 @@ import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 
+import com.ioleak.jnetcat.client.exception.ClientReadMessageException;
+import com.ioleak.jnetcat.client.exception.ClientSendMessageException;
 import com.ioleak.jnetcat.common.Logging;
 import com.ioleak.jnetcat.common.interfaces.ProcessAction;
 import com.ioleak.jnetcat.common.properties.ObjectProperty;
@@ -40,11 +42,13 @@ import com.ioleak.jnetcat.options.startup.ClientParametersUDP;
 public class UDPClient
         implements ProcessAction, SocketClient {
 
+  private static final String SOCKET_NOT_INITIALIZATED = "Not correctly initializated: socket is null";
+  
   private DatagramSocket clientSocket;
   private final String ip;
   private final int port;
   private final int soTimeout;
-  
+
   private final ObjectProperty<Boolean> connectedProperty = new ObjectProperty<>(false);
 
   public UDPClient(ClientParametersUDP clientParametersUDP) {
@@ -59,14 +63,17 @@ public class UDPClient
       clientSocket = new DatagramSocket();
       clientSocket.setSoTimeout(soTimeout);
 
-      Logging.getLogger().info(String.format("Openning connection UDP: %s", ip));
+      Logging.getLogger().info(String.format("Openning UDP connection: %s:%d", ip, port));
 
     } catch (SocketException ex) {
       Logging.getLogger().error("Socket error", ex);
     }
   }
 
+  @Override
   public void sendMessage(String message) {
+    checkClientInitializatedOnSend();
+    
     try {
       InetAddress address = InetAddress.getByName(ip);
 
@@ -76,9 +83,9 @@ public class UDPClient
       Logging.getLogger().info(String.format("Sending [to: %s] message: %s", address.getHostAddress(), message));
 
     } catch (UnknownHostException ex) {
-      Logging.getLogger().error("Unknown host", ex);
+      throw new ClientSendMessageException("Unknown host", ex);
     } catch (IOException ex) {
-      Logging.getLogger().error("Error on link", ex);
+      throw new ClientSendMessageException("An error occured", ex);
     }
   }
 
@@ -86,18 +93,19 @@ public class UDPClient
     byte[] buffer = new byte[512];
     DatagramPacket response = new DatagramPacket(buffer, buffer.length);
 
+    checkClientInitializatedOnRead();
+
     try {
       clientSocket.receive(response);
-
     } catch (IOException ex) {
-      Logging.getLogger().error("Error on link", ex);
+      throw new ClientReadMessageException("An error occured", ex);
     }
 
     return new String(buffer, 0, response.getLength());
   }
 
   @Override
-  public boolean isRunning() {
+  public boolean isStateSuccessful() {
     return true;
   }
 
@@ -105,7 +113,7 @@ public class UDPClient
   public ObjectProperty<Boolean> connectedProperty() {
     return connectedProperty;
   }
-  
+
   @Override
   public boolean stopActiveExecution() {
     throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
@@ -114,5 +122,17 @@ public class UDPClient
   @Override
   public boolean stopExecutions() {
     throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+  }
+
+  private void checkClientInitializatedOnRead() {
+    if (clientSocket == null) {
+      throw new ClientReadMessageException(SOCKET_NOT_INITIALIZATED);
+    }
+  }
+  
+  private void checkClientInitializatedOnSend() {
+    if (clientSocket == null) {
+      throw new ClientSendMessageException(SOCKET_NOT_INITIALIZATED);
+    }
   }
 }

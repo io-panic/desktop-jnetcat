@@ -29,7 +29,9 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.net.SocketAddress;
 
 import com.ioleak.jnetcat.client.exception.ClientReadMessageException;
 import com.ioleak.jnetcat.client.exception.ClientSendMessageException;
@@ -63,7 +65,10 @@ public class TCPClient
         Logging.getLogger().warn(String.format("TCP connection already open on %s:%d", ip, port));
       } else {
         Logging.getLogger().info(String.format("Trying to open a TCP connection [%s:%s]", ip, port));
-        clientSocket = new Socket(ip, port);
+
+        clientSocket = new Socket();
+        SocketAddress socketAddress = new InetSocketAddress(ip, port);
+        clientSocket.connect(socketAddress, soTimeout);
         clientSocket.setSoTimeout(soTimeout);
 
         Logging.getLogger().info(String.format("TCP connection established on %s:%d", ip, port));
@@ -130,7 +135,7 @@ public class TCPClient
   }
 
   @Override
-  public boolean isRunning() {
+  public boolean isStateSuccessful() {
     return connectedProperty().get();
   }
 
@@ -141,7 +146,7 @@ public class TCPClient
   @Override
   public boolean stopActiveExecution() {
     boolean closed = false;
-    
+
     try {
       if (clientSocket != null) {
         clientSocket.close();
@@ -154,7 +159,7 @@ public class TCPClient
     } finally {
       updateConnectedProperty();
     }
-    
+
     return closed;
   }
 

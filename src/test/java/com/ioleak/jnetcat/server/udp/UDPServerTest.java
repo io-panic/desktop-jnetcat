@@ -23,15 +23,41 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.ioleak.jnetcat.client;
 
-import com.ioleak.jnetcat.common.properties.ObjectProperty;
+package com.ioleak.jnetcat.server.udp;
 
-public interface SocketClient {
+import com.ioleak.jnetcat.common.Logging;
+import com.ioleak.jnetcat.options.startup.ServerParametersUDP;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 
-  public void sendMessage(String msg);
 
-  public String readMessage();
+public class UDPServerTest {
+  private Thread udpServerThread;
+  private UDPServer udpServer;
+  private static final int LISTEN_PORT = 0;
 
-  public ObjectProperty<Boolean> connectedProperty();
+  @BeforeEach
+  public void setUp() {
+    udpServer = getUdpServer();
+    udpServerThread = new Thread(udpServer::start);
+    udpServerThread.start();
+  }
+
+  @AfterEach
+  public void tearDown() {
+    udpServerThread.interrupt();
+    udpServer.stopExecutions();
+
+    try {
+      udpServerThread.join();
+    } catch (InterruptedException ex) {
+      Logging.getLogger().error("InterruptedException", ex);
+    }
+  }
+  
+  private UDPServer getUdpServer() {
+    ServerParametersUDP serverParametersUDP = new ServerParametersUDP.ParametersBuilder(LISTEN_PORT).withServerType(UDPServerType.BASIC).build();
+    return new UDPServer(serverParametersUDP);
+  }
 }

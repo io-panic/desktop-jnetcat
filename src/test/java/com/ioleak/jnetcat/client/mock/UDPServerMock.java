@@ -23,39 +23,59 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.ioleak.jnetcat.service;
+package com.ioleak.jnetcat.client.mock;
 
-import com.ioleak.jnetcat.common.BaseEnum;
+import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
 
-public enum JNetcatProcessResult
-        implements BaseEnum {
+import com.ioleak.jnetcat.common.Logging;
 
-  UNKNOWN(-1, "Value unknown: no execution"),
-  SUCCESS(0, "Process executed with success"),
-  FAILED(1, "Something wrong happened, but may be expected"),
-  ERROR(2, "A fatal error occured"),
-  IN_PROGRESS(3, "Execution in progress");
+public class UDPServerMock
+        implements Runnable {
 
-  private int code;
-  private String msg;
+  public static final String RESPONSE_MOCK = "RESPONSE_MOCK";
 
-  private JNetcatProcessResult(int code, String msg) {
-    this.code = code;
-    this.msg = msg;
+  private DatagramSocket serverSocket;
+
+  public UDPServerMock() {
+    try {
+      serverSocket = new DatagramSocket(0);
+    } catch (IOException ex) {
+      Logging.getLogger().error("Unable to start UDP server", ex);
+    }
   }
 
   @Override
-  public int getCode() {
-    return code;
+  public void run() {
+    while (!Thread.currentThread().isInterrupted()) {
+      DatagramPacket request = new DatagramPacket(new byte[1], 1);
+      try {
+        serverSocket.receive(request);
+
+        String quote = RESPONSE_MOCK;
+        byte[] buffer = quote.getBytes();
+
+        InetAddress clientAddress = request.getAddress();
+        int clientPort = request.getPort();
+
+        DatagramPacket response = new DatagramPacket(buffer, buffer.length, clientAddress, clientPort);
+
+        serverSocket.send(response);
+      } catch (IOException ex) {
+        Logging.getLogger().error("Unable to receive data on server", ex);
+      }
+    }
   }
 
-  @Override
-  public String getDetails(Object... args) {
-    return msg;
+  public int getPort() {
+    return serverSocket.getLocalPort();
   }
 
-  @Override
-  public String toString() {
-    return String.format("%d [%s]", getCode(), getDetails());
+  public void closeServer() {
+    if (serverSocket != null && !serverSocket.isClosed()) {
+      serverSocket.close();
+    }
   }
 }

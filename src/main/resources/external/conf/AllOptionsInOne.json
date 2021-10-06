@@ -1,9 +1,11 @@
 {
-  "startAsServer": true,
+  "startAsServer": false,
   "useProtocolTCP": true,
+  "daemon": false,
   "clientParametersTCP": {
     "ip": "192.168.135.55",
     "port": 1,
+    "soTimeout": 2500,
     "nbClientMax": 1,
     "nbExecution": 1,
     "sleepBetweenExecMs": 1000

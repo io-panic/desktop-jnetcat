@@ -44,11 +44,16 @@ public class TCPClientTest {
   TCPServerMock tcpServerMock;
   Thread tcpServerThread;
 
+  TCPClient tcpClient;
+          
   @BeforeEach
   private void setUp() {
     tcpServerMock = new TCPServerMock();
     tcpServerThread = new Thread(tcpServerMock::run);
     tcpServerThread.start();
+    
+    ClientParametersTCP clientParametersTCP = new ClientParametersTCP.ParametersBuilder("127.0.0.1", tcpServerMock.getPort()).build();
+    tcpClient = new TCPClient(clientParametersTCP);
   }
 
   @AfterEach
@@ -64,18 +69,21 @@ public class TCPClientTest {
   }
 
   @Test
+  public void start_PortNotOpen_NotConnected() {
+    ClientParametersTCP clientParametersTCP = new ClientParametersTCP.ParametersBuilder("127.0.0.1", 33291).build();
+    tcpClient = new TCPClient(clientParametersTCP);
+    tcpClient.start();
+    
+    assertFalse(tcpClient.connectedProperty().get());
+  }
+  
+  @Test
   public void sendMessage_NoConnection_ExceptionThrown() {
-    ClientParametersTCP clientParametersTCP = new ClientParametersTCP.ParametersBuilder("127.0.0.1", tcpServerMock.getPort()).build();
-    TCPClient tcpClient = new TCPClient(clientParametersTCP);
-
     assertThrows(ClientSendMessageException.class, () -> tcpClient.sendMessage("Hello wait"));
   }
 
   @Test
   public void sendMessage_StringWithCRLF_AsExpected() {
-    ClientParametersTCP clientParametersTCP = new ClientParametersTCP.ParametersBuilder("127.0.0.1", tcpServerMock.getPort()).build();
-    TCPClient tcpClient = new TCPClient(clientParametersTCP);
-
     tcpClient.start();
     assertTrue(tcpClient.connectedProperty().get());
 
@@ -85,9 +93,6 @@ public class TCPClientTest {
 
   @Test
   public void sendMessage_ServerCloseClient_ExceptionThrown() {
-    ClientParametersTCP clientParametersTCP = new ClientParametersTCP.ParametersBuilder("127.0.0.1", tcpServerMock.getPort()).build();
-    TCPClient tcpClient = new TCPClient(clientParametersTCP);
-
     tcpClient.start();
     assertTrue(tcpClient.connectedProperty().get());
 
@@ -99,17 +104,11 @@ public class TCPClientTest {
 
   @Test
   public void readMessage_NoConnection_ExceptionThrown() {
-    ClientParametersTCP clientParametersTCP = new ClientParametersTCP.ParametersBuilder("127.0.0.1", tcpServerMock.getPort()).build();
-    TCPClient tcpClient = new TCPClient(clientParametersTCP);
-
     assertThrows(ClientReadMessageException.class, () -> tcpClient.readMessage());
   }
 
   @Test
   public void readMessage_StringWithCRLF_AsExpected() {
-    ClientParametersTCP clientParametersTCP = new ClientParametersTCP.ParametersBuilder("127.0.0.1", tcpServerMock.getPort()).build();
-    TCPClient tcpClient = new TCPClient(clientParametersTCP);
-
     tcpClient.start();
     assertTrue(tcpClient.connectedProperty().get());
 
@@ -119,9 +118,6 @@ public class TCPClientTest {
 
   @Test
   public void readMessage_ServerCloseClient_ExceptionThrown() {
-    ClientParametersTCP clientParametersTCP = new ClientParametersTCP.ParametersBuilder("127.0.0.1", tcpServerMock.getPort()).build();
-    TCPClient tcpClient = new TCPClient(clientParametersTCP);
-
     tcpClient.start();
     assertTrue(tcpClient.connectedProperty().get());
 

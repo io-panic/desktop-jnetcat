@@ -25,8 +25,6 @@
  */
 package com.ioleak.jnetcat;
 
-import com.ioleak.jnetcat.service.JNetcatProcess;
-
 import java.io.File;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -40,7 +38,10 @@ import com.ioleak.jnetcat.common.FileWatcher;
 import com.ioleak.jnetcat.common.Logging;
 import com.ioleak.jnetcat.common.parsers.ArgumentsParser;
 import com.ioleak.jnetcat.common.utils.JsonUtils;
+import com.ioleak.jnetcat.options.JNetcatParameters;
 import com.ioleak.jnetcat.server.console.KeyCharReader;
+import com.ioleak.jnetcat.service.JNetcatProcess;
+import com.ioleak.jnetcat.service.JNetcatProcessResult;
 
 public class JNetcat {
 
@@ -92,18 +93,18 @@ public class JNetcat {
   private static void initJNetcatProcessRun(File jsonFile) {
     jnetcatRun = JNetcatProcess.JNETCATPROCESS;
     jnetcatRun.setJsonParamsFile(jsonFile);
+    jnetcatRun.setExitMethod(JNetcat::exit);
   }
 
   private static void readKeyboardCharConsole() {
-    KeyCharReader keyCharReader = new KeyCharReader(jnetcatRun::stopActiveExecution,
-                                                    () -> {
-                                                      boolean executionStopped = jnetcatRun.stopExecutions();
-                                                      if (executionStopped) {
-                                                        System.exit(0);
-                                                      }
+    KeyCharReader keyCharReader = new KeyCharReader(jnetcatRun::stopActiveExecution, () -> {
+                                              boolean executionStopped = jnetcatRun.stopExecutions();
+                                              if (executionStopped) {
+                                                System.exit(0);
+                                              }
 
-                                                      return executionStopped;
-                                                    });
+                                              return executionStopped;
+                                            });
     keyCharReader.run();
   }
 
@@ -142,5 +143,11 @@ public class JNetcat {
     parameters.put("-f", "Configuration file to use for default parameters");
 
     return parameters;
+  }
+
+  private static void exit(JNetcatProcessResult resultExecution, JNetcatParameters params) {
+    if (!params.isDaemon()) {
+      System.exit(resultExecution.getCode());
+    }
   }
 }
