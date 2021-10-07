@@ -23,39 +23,29 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.ioleak.jnetcat.server.tcp;
+package com.ioleak.jnetcat.common.utils;
 
-import com.ioleak.jnetcat.common.BaseEnum;
+import org.junit.jupiter.api.Test;
 
-public enum TCPServerState
-        implements BaseEnum {
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-  NOT_STARTED(-1, "No server is started (not listening)"),
-  STARTING(0, "Server is starting..."),
-  WAITING_FOR_CONNECTION(1, "Waiting for a new connection"),
-  CLIENT_CONNECTED(2, "A client is connected"),
-  CLOSED(3, "Server was running but not listening anymore");
+public class ThreadUtilsTest {
+  public static final int ACCEPTED_TEST_VARIA = 250;
+  
+  @Test
+  public void test() {
+    long startTime = System.currentTimeMillis();
 
-  private int code;
-  private String msg;
+    ThreadUtils.waitForThread(() -> {
+      return true;
+    });
 
-  private TCPServerState(int code, String msg) {
-    this.code = code;
-    this.msg = msg;
-  }
-
-  @Override
-  public int getCode() {
-    return code;
-  }
-
-  @Override
-  public String getDetails(Object... args) {
-    return msg;
-  }
-
-  @Override
-  public String toString() {
-    return String.format("%d [%s]", getCode(), getDetails());
+    int nominalValue = ThreadUtils.MAX_NB_LOOP * ThreadUtils.THREAD_MIN_WAIT_MS;
+    long currentValue = System.currentTimeMillis() - startTime;
+    
+    int expectedLow = nominalValue - ACCEPTED_TEST_VARIA;
+    int expectedHigh = nominalValue + ACCEPTED_TEST_VARIA;
+    
+    assertTrue(expectedLow < currentValue && currentValue < expectedHigh, "Execution time should be near nominalValue");
   }
 }

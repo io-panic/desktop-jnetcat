@@ -23,47 +23,39 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.ioleak.jnetcat.server.udp.implement;
+package com.ioleak.jnetcat.server.generic;
 
-import java.io.IOException;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
+import com.ioleak.jnetcat.common.BaseEnum;
 
-import com.ioleak.jnetcat.common.Logging;
-import com.ioleak.jnetcat.common.utils.StringUtils;
-import com.ioleak.jnetcat.server.udp.UDPClientConnection;
+public enum ServerState
+        implements BaseEnum {
 
-public class Basic
-        implements UDPClientConnection {
+  NOT_STARTED(-1, "No server is started (not listening)"),
+  STARTING(0, "Server is starting..."),
+  WAITING_FOR_CONNECTION(1, "Waiting for a new connection"),
+  CLIENT_CONNECTED(2, "A client is connected"),
+  CLOSED(3, "Server was running but not listening anymore");
 
-  public static final int MAX_PACKET_LENGTH = 2048;
+  private final int code;
+  private final String msg;
 
-  @Override
-  public void startClient(DatagramSocket socket) throws IOException {
-    byte[] buffer = new byte[MAX_PACKET_LENGTH];
-    DatagramPacket request = new DatagramPacket(buffer, buffer.length);
-
-    while (!Thread.currentThread().isInterrupted()) {
-      socket.receive(request);
-
-      String msg = getReceivedString(request);
-      
-      Logging.getLogger().info("UDP Received data : ");
-      System.out.println(StringUtils.toHexWithSpaceSeparator(msg));
-
-      for (int i = 0; i < buffer.length; i++) {
-        buffer[i] = 0;
-      }
-      request.setLength(buffer.length);
-    }
-
+  private ServerState(int code, String msg) {
+    this.code = code;
+    this.msg = msg;
   }
 
-  private String getReceivedString(DatagramPacket request) {
-    byte[] receivedData = request.getData();
-    byte[] trimmedData = new byte[request.getLength()];
-    System.arraycopy(receivedData, 0, trimmedData, 0, trimmedData.length);
+  @Override
+  public int getCode() {
+    return code;
+  }
 
-    return new String(trimmedData);
+  @Override
+  public String getDetails(Object... args) {
+    return msg;
+  }
+
+  @Override
+  public String toString() {
+    return String.format("%d [%s]", getCode(), getDetails());
   }
 }

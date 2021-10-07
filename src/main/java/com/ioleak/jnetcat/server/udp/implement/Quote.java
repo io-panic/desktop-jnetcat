@@ -25,45 +25,73 @@
  */
 package com.ioleak.jnetcat.server.udp.implement;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.net.SocketTimeoutException;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Random;
 
+import com.ioleak.jnetcat.JNetcat;
+import com.ioleak.jnetcat.common.Logging;
+import com.ioleak.jnetcat.common.exception.FileNotFoundException;
+import com.ioleak.jnetcat.common.utils.JsonUtils;
+import com.ioleak.jnetcat.common.utils.StringUtils;
 import com.ioleak.jnetcat.server.udp.UDPClientConnection;
 
 public class Quote
         implements UDPClientConnection {
 
+  public static final int MAX_PACKET_LENGTH = 1;
+  public static final String DEFAULT_QUOTES_TXT = "conf/quotes.txt";
+  private List<String> quotes = new ArrayList<>();
+
+  public Quote() {
+    loadQuote(DEFAULT_QUOTES_TXT);
+  }
+
   @Override
   public void startClient(DatagramSocket socket) throws IOException {
-    try {
+    byte[] buffer = new byte[MAX_PACKET_LENGTH];
+    DatagramPacket request = new DatagramPacket(buffer, buffer.length);
 
-      while (true) {
-        listenClient(socket);
-      }
+    while (!Thread.currentThread().isInterrupted()) {
+      socket.receive(request);
 
-    } catch (SocketTimeoutException ex) {
-      System.out.println("Timeout error: " + ex.getMessage());
-      ex.printStackTrace();
-    } catch (IOException ex) {
-      System.out.println("Client error: " + ex.getMessage());
-      ex.printStackTrace();
+      String msg = getReceivedString(request);
+      
+      Logging.getLogger().info("UDP Received data : ");
+      System.out.println(StringUtils.toHexWithSpaceSeparator(msg));
+      
+      int selectedQuoteIndex = new Random().nextInt(quotes.size());
+      String selectedQuote = quotes.get(selectedQuoteIndex);
+      
+      sendToClient(socket, request, selectedQuote.getBytes());
     }
   }
 
-  private void listenClient(DatagramSocket socket)
-          throws IOException {
+  public void loadQuote(String relativePath) {
+    URL url = JsonUtils.getRelativePath(relativePath, JNetcat.class);
 
-    byte[] buffer = new byte[256];
+    try {
+      File jsonFile = new File(url.toURI());
+      if (!jsonFile.exists()) {
+        throw new FileNotFoundException(String.format("File don't exists: %s", url.toString()));
+      }
 
-    DatagramPacket request = new DatagramPacket(buffer, buffer.length);
-    socket.receive(request);
+      String rawQuotes = Files.readString(jsonFile.toPath());
+      quotes.addAll(Arrays.asList(rawQuotes.split("\n")));
 
-    System.out.println("UDP Received data : ");
-    for (byte data : buffer) {
-      System.out.print(String.format("%02X ", data));
+    } catch (URISyntaxException ex) {
+      Logging.getLogger().error("Unable to load QUOTE file: syntax error", ex);
+    } catch (IOException ex) {
+      Logging.getLogger().error("Unable to load QUOTE file: exception on read", ex);
     }
   }
 
@@ -75,5 +103,15 @@ public class Quote
 
     DatagramPacket response = new DatagramPacket(data, data.length, clientAddress, clientPort);
     socket.send(response);
+    
+    Logging.getLogger().info(String.format("Response sent to %s:%d", clientAddress.getHostAddress(), clientPort));
+  }
+
+  private String getReceivedString(DatagramPacket request) {
+    byte[] receivedData = request.getData();
+    byte[] trimmedData = new byte[request.getLength()];
+    System.arraycopy(receivedData, 0, trimmedData, 0, trimmedData.length);
+
+    return new String(trimmedData);
   }
 }

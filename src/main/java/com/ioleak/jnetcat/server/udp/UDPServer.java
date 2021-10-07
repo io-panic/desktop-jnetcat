@@ -33,9 +33,14 @@ import java.util.List;
 import com.ioleak.jnetcat.common.Logging;
 import com.ioleak.jnetcat.options.startup.ServerParametersUDP;
 import com.ioleak.jnetcat.server.generic.Listener;
+import com.ioleak.jnetcat.server.generic.ServerState;
+import com.ioleak.jnetcat.server.udp.exception.UDPServerUnitializatedStartException;
 
 public class UDPServer
         extends Listener<UDPServerType, DatagramSocket> {
+
+    private DatagramSocket serverSocket;
+    private ServerState serverState = ServerState.NOT_STARTED;
 
   public UDPServer(ServerParametersUDP serverParametersUDP) {
     this(serverParametersUDP.getServerType(), serverParametersUDP.getPort());
@@ -47,30 +52,36 @@ public class UDPServer
 
   @Override
   public void start() {
-    try (DatagramSocket serverSocket = new DatagramSocket(getPort())) {
+    serverState = ServerState.STARTING;
+    Logging.getLogger().info(String.format("Server act as a server (UDP): %s", getServerType().toString()));
 
-      while (!Thread.currentThread().isInterrupted()) {
-        getConnectionClients().add(serverSocket);
-        Logging.getLogger().info(String.format("Connection received from %s", serverSocket.getRemoteSocketAddress()));
+    try {
+      serverSocket = new DatagramSocket(getPort());
+      Logging.getLogger().info(String.format("Listening on port %d", getLocalPort()));
 
+      while (!(serverSocket.isClosed() || Thread.currentThread().isInterrupted())) {
+        serverState = ServerState.WAITING_FOR_CONNECTION;
         try {
           getServerType().getClient().startClient(serverSocket);
-        } catch (SocketException ex) {
-          Logging.getLogger().info(String.format("Socket failure: %s", ex.getMessage()));
+          serverState = ServerState.CLIENT_CONNECTED;
+        } catch (IOException ex) {
+          Logging.getLogger().error(String.format("Unable to start a new UDP client (port: %d)", getLocalPort()), ex);
         }
-
-        Logging.getLogger().info(String.format("Connection closed on client %s", serverSocket.getRemoteSocketAddress()));
+        
       }
-    } catch (IOException ex) {
-      Logging.getLogger().info(String.format("Unable to start UDP listener"));
+    } catch (SocketException ex) {
+      Logging.getLogger().error(String.format("Unable to start socket on port %d", getLocalPort()), ex);
     }
+
+    serverState = ServerState.CLOSED;
+    Logging.getLogger().warn(String.format("Server closed on defined port %d", getLocalPort()));
   }
 
   @Override
   public boolean isStateSuccessful() {
-    return true;
+    return (serverState == ServerState.CLOSED);
   }
-
+  
   @Override
   public boolean stopActiveExecution() {
     boolean serverClosed = false;
@@ -96,7 +107,27 @@ public class UDPServer
 
   @Override
   public boolean stopExecutions() {
+    boolean closed = false;
+    
     System.out.println("Stop server request");
-    return true;
+    if (serverSocket != null) {
+      serverSocket.close();
+      closed = true;
+    }
+    
+    return closed;
+  }
+  
+  public ServerState getServerState() {
+    return serverState;
+  }
+
+  public int getLocalPort() {
+    if (serverSocket == null) {
+      throw new UDPServerUnitializatedStartException("Server is not started");
+    }
+
+    
+    return serverSocket.isClosed() ? getPort() : serverSocket.getLocalPort();
   }
 }

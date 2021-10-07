@@ -26,10 +26,23 @@
 
 package com.ioleak.jnetcat.server.udp;
 
+import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+
 import com.ioleak.jnetcat.common.Logging;
+import com.ioleak.jnetcat.common.utils.ThreadUtils;
 import com.ioleak.jnetcat.options.startup.ServerParametersUDP;
+import com.ioleak.jnetcat.server.generic.ServerState;
+import com.ioleak.jnetcat.server.udp.exception.UDPServerUnitializatedStartException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 
 public class UDPServerTest {
@@ -46,8 +59,11 @@ public class UDPServerTest {
 
   @AfterEach
   public void tearDown() {
+    if (udpServer != null) {
+      udpServer.stopExecutions();  
+    }
+    
     udpServerThread.interrupt();
-    udpServer.stopExecutions();
 
     try {
       udpServerThread.join();
@@ -56,6 +72,42 @@ public class UDPServerTest {
     }
   }
   
+  @Test
+  public void getLocalPort_ServerNotStarted_ExceptionThrown() {
+    UDPServer udpTmpServer = getUdpServer();
+
+    assertEquals(ServerState.NOT_STARTED, udpTmpServer.getServerState());
+    assertThrows(UDPServerUnitializatedStartException.class, () -> udpTmpServer.getLocalPort());
+  }
+  
+  @Test
+  public void startServer_ClientConnection_IsConnected() {
+    boolean isConnected = false;
+
+    try {
+      ThreadUtils.waitForThread(() -> udpServer.getServerState() != ServerState.WAITING_FOR_CONNECTION);
+      assertEquals(ServerState.WAITING_FOR_CONNECTION, udpServer.getServerState());
+
+      String sendData = "Test UDP DATA";
+      DatagramPacket udpPacket = new DatagramPacket(sendData.getBytes(), sendData.getBytes().length, 
+              InetAddress.getByName("127.0.0.1"), udpServer.getLocalPort());
+            
+      DatagramSocket udpClient = new DatagramSocket(0);
+      udpClient.send(udpPacket);
+      
+      ThreadUtils.waitForThread(() -> udpServer.getServerState() != ServerState.WAITING_FOR_CONNECTION);
+      assertTrue(udpServer.getServerState().equals(ServerState.WAITING_FOR_CONNECTION));
+
+      isConnected = !udpClient.isClosed();
+      udpClient.close();
+    } catch (IOException ex) {
+      Logging.getLogger().error("An error occured", ex);
+    }
+
+    assertTrue(isConnected);
+    assertEquals(ServerState.WAITING_FOR_CONNECTION, udpServer.getServerState());
+  }
+
   private UDPServer getUdpServer() {
     ServerParametersUDP serverParametersUDP = new ServerParametersUDP.ParametersBuilder(LISTEN_PORT).withServerType(UDPServerType.BASIC).build();
     return new UDPServer(serverParametersUDP);

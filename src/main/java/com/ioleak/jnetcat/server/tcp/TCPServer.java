@@ -34,13 +34,14 @@ import java.util.List;
 import com.ioleak.jnetcat.common.Logging;
 import com.ioleak.jnetcat.options.startup.ServerParametersTCP;
 import com.ioleak.jnetcat.server.generic.Listener;
+import com.ioleak.jnetcat.server.generic.ServerState;
 import com.ioleak.jnetcat.server.tcp.exception.TCPServerUnitializatedStartException;
 
 public class TCPServer
         extends Listener<TCPServerType, Socket> {
 
   private ServerSocket serverSocket;
-  private TCPServerState serverState = TCPServerState.NOT_STARTED;
+  private ServerState serverState = ServerState.NOT_STARTED;
 
   public TCPServer(ServerParametersTCP serverParametersTCP) {
     this(serverParametersTCP.getServerType(), serverParametersTCP.getPort());
@@ -52,8 +53,8 @@ public class TCPServer
 
   @Override
   public void start() {
-    serverState = TCPServerState.STARTING;
-    Logging.getLogger().info(String.format("Server act as a server: %s", getServerType().toString()));
+    serverState = ServerState.STARTING;
+    Logging.getLogger().info(String.format("Server act as a server (TCP): %s", getServerType().toString()));
 
     try {
       serverSocket = new ServerSocket(getPort());
@@ -61,9 +62,9 @@ public class TCPServer
 
       while (!(serverSocket.isClosed() || Thread.currentThread().isInterrupted())) {
 
-        serverState = TCPServerState.WAITING_FOR_CONNECTION;
+        serverState = ServerState.WAITING_FOR_CONNECTION;
         try (Socket socket = serverSocket.accept()) {
-          serverState = TCPServerState.CLIENT_CONNECTED;
+          serverState = ServerState.CLIENT_CONNECTED;
           getConnectionClients().add(socket);
           Logging.getLogger().info(String.format("Connection received from %s", socket.getRemoteSocketAddress()));
 
@@ -72,7 +73,6 @@ public class TCPServer
           } catch (SocketException ex) {
             Logging.getLogger().info(String.format("Socket failure: %s", ex.getMessage()));
           }
-
           Logging.getLogger().info(String.format("Connection closed on client %s", socket.getRemoteSocketAddress()));
         } catch (IOException ex) {
           if (!serverSocket.isClosed()) {
@@ -86,13 +86,13 @@ public class TCPServer
       }
     }
 
-    serverState = TCPServerState.CLOSED;
+    serverState = ServerState.CLOSED;
     Logging.getLogger().warn(String.format("Server closed on defined port %d", getPort()));
   }
 
   @Override
   public boolean isStateSuccessful() {
-    return (serverState == TCPServerState.CLOSED);
+    return (serverState == ServerState.CLOSED);
   }
 
   @Override
@@ -150,7 +150,7 @@ public class TCPServer
     return closed;
   }
 
-  public TCPServerState getServerState() {
+  public ServerState getServerState() {
     return serverState;
   }
 

@@ -31,13 +31,16 @@ import com.ioleak.jnetcat.common.Logging;
 
 public class ThreadUtils {
 
-  public static final int THREAD_MIN_WAIT_MS = 100;
+  public static final int THREAD_MIN_WAIT_MS = 50;
   public static final int MAX_NB_LOOP = 10;
+
+  private ThreadUtils() {
+  }
 
   public static void waitForThread(BooleanSupplier conditionToWaitFor) {
     int i = 0;
 
-    while (i <= MAX_NB_LOOP && conditionToWaitFor.getAsBoolean()) {
+    while (i < MAX_NB_LOOP && conditionToWaitFor.getAsBoolean()) {
       try {
         Thread.sleep(THREAD_MIN_WAIT_MS);
       } catch (InterruptedException ex) {
