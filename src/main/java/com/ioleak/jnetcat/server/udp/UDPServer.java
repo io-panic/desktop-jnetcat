@@ -31,6 +31,7 @@ import java.net.SocketException;
 import java.util.List;
 
 import com.ioleak.jnetcat.common.Logging;
+import com.ioleak.jnetcat.common.properties.Observable;
 import com.ioleak.jnetcat.options.startup.ServerParametersUDP;
 import com.ioleak.jnetcat.server.generic.Listener;
 import com.ioleak.jnetcat.server.generic.ServerState;
@@ -39,8 +40,9 @@ import com.ioleak.jnetcat.server.udp.exception.UDPServerUnitializatedStartExcept
 public class UDPServer
         extends Listener<UDPServerType, DatagramSocket> {
 
-    private DatagramSocket serverSocket;
-    private ServerState serverState = ServerState.NOT_STARTED;
+  private Observable keyListener;
+  private DatagramSocket serverSocket;
+  private ServerState serverState = ServerState.NOT_STARTED;
 
   public UDPServer(ServerParametersUDP serverParametersUDP) {
     this(serverParametersUDP.getServerType(), serverParametersUDP.getPort());
@@ -67,7 +69,7 @@ public class UDPServer
         } catch (IOException ex) {
           Logging.getLogger().error(String.format("Unable to start a new UDP client (port: %d)", getLocalPort()), ex);
         }
-        
+
       }
     } catch (SocketException ex) {
       Logging.getLogger().error(String.format("Unable to start socket on port %d", getLocalPort()), ex);
@@ -81,7 +83,7 @@ public class UDPServer
   public boolean isStateSuccessful() {
     return (serverState == ServerState.CLOSED);
   }
-  
+
   @Override
   public boolean stopActiveExecution() {
     boolean serverClosed = false;
@@ -105,19 +107,29 @@ public class UDPServer
     return serverClosed;
   }
 
+  public void setKeyListener(Observable keyListener) {
+    this.keyListener = keyListener;
+
+    // TODO: ...
+    //if (this.keyListener != null) {
+    //  keyListener.addListener((PropertyChangeEvent evt) -> {
+    //    System.out.println("key hit!! " + evt.getNewValue());
+    //  });
+  }
+
   @Override
   public boolean stopExecutions() {
     boolean closed = false;
-    
+
     System.out.println("Stop server request");
     if (serverSocket != null) {
       serverSocket.close();
       closed = true;
     }
-    
+
     return closed;
   }
-  
+
   public ServerState getServerState() {
     return serverState;
   }
@@ -127,7 +139,6 @@ public class UDPServer
       throw new UDPServerUnitializatedStartException("Server is not started");
     }
 
-    
     return serverSocket.isClosed() ? getPort() : serverSocket.getLocalPort();
   }
 }

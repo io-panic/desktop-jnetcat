@@ -37,6 +37,7 @@ import java.util.concurrent.CountDownLatch;
 import com.ioleak.jnetcat.common.FileWatcher;
 import com.ioleak.jnetcat.common.Logging;
 import com.ioleak.jnetcat.common.parsers.ArgumentsParser;
+import com.ioleak.jnetcat.common.parsers.exception.UnknownArgumentParserException;
 import com.ioleak.jnetcat.common.utils.JsonUtils;
 import com.ioleak.jnetcat.options.JNetcatParameters;
 import com.ioleak.jnetcat.server.console.KeyCharReader;
@@ -50,16 +51,26 @@ public class JNetcat {
 
   private static Thread jnetcatThread;
   private static JNetcatProcess jnetcatRun;
+  private static KeyCharReader keyCharReader;
 
   public static void main(String... args) {
     String version = JNetcat.class.getPackage().getImplementationVersion();
     ArgumentsParser argumentsParser = new ArgumentsParser(version, DESCRIPTION, getParametersMapping());
     int returnCode = 0;
 
-    argumentsParser.setArguments(args);
+    try {
+      argumentsParser.setArguments(args);
 
-    if (argumentsParser.switchPresent("-h")) {
+      if (argumentsParser.switchPresent("-h")) {
+        System.out.println(argumentsParser.getHelpMessage());
+
+        System.exit(0);
+      }
+    } catch (UnknownArgumentParserException ex) {
+      System.out.println(ex.getMessage());
+      System.out.println();
       System.out.println(argumentsParser.getHelpMessage());
+
       System.exit(0);
     }
 
@@ -71,10 +82,10 @@ public class JNetcat {
       File jsonFile = new File(url.toURI());
       Logging.getLogger().info(String.format("Parameter file absolute path: %s", jsonFile.getAbsolutePath()));
 
-      initJNetcatProcessRun(jsonFile);
+      initJNetcatProcessRun(jsonFile, argumentsParser);
 
       startThreadFileWatcher(jsonFile, 2500);
-      readKeyboardCharConsole();
+      startKeyboardCharConsole();
 
       keepRunningIndefinitely();
     } catch (URISyntaxException ex) {
@@ -90,21 +101,25 @@ public class JNetcat {
     timer.schedule(fileWatcher, new Date(), delayMs);
   }
 
-  private static void initJNetcatProcessRun(File jsonFile) {
+  private static void initJNetcatProcessRun(File jsonFile, ArgumentsParser argumentsParser) {
     jnetcatRun = JNetcatProcess.JNETCATPROCESS;
     jnetcatRun.setJsonParamsFile(jsonFile);
+    jnetcatRun.setParametersOverride(argumentsParser);
     jnetcatRun.setExitMethod(JNetcat::exit);
+
+    keyCharReader = new KeyCharReader(jnetcatRun::stopActiveExecution, () -> {
+                                boolean executionStopped = jnetcatRun.stopExecutions();
+                                if (executionStopped) {
+                                  System.exit(0);
+                                }
+
+                                return executionStopped;
+                              });
+
+    jnetcatRun.setKeyListener(keyCharReader);
   }
 
-  private static void readKeyboardCharConsole() {
-    KeyCharReader keyCharReader = new KeyCharReader(jnetcatRun::stopActiveExecution, () -> {
-                                              boolean executionStopped = jnetcatRun.stopExecutions();
-                                              if (executionStopped) {
-                                                System.exit(0);
-                                              }
-
-                                              return executionStopped;
-                                            });
+  private static void startKeyboardCharConsole() {
     keyCharReader.run();
   }
 
@@ -141,6 +156,13 @@ public class JNetcat {
   private static Map<String, String> getParametersMapping() {
     Map<String, String> parameters = new HashMap<>();
     parameters.put("-f", "Configuration file to use for default parameters");
+    parameters.put("-i", "Override IP parameter");
+    parameters.put("-p", "Override Port parameter");
+    parameters.put("-c", "Act as a client");
+    parameters.put("-s", "Act as a server");
+    parameters.put("-ci", "interactive mode");
+    parameters.put("-u", "Use UDP");
+    parameters.put("-t", "Use TCP");
 
     return parameters;
   }

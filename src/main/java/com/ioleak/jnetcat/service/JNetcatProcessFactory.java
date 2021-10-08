@@ -28,13 +28,14 @@ package com.ioleak.jnetcat.service;
 import com.ioleak.jnetcat.client.TCPClient;
 import com.ioleak.jnetcat.client.UDPClient;
 import com.ioleak.jnetcat.common.interfaces.ProcessAction;
+import com.ioleak.jnetcat.common.properties.Observable;
 import com.ioleak.jnetcat.options.JNetcatParameters;
 import com.ioleak.jnetcat.server.tcp.TCPServer;
 import com.ioleak.jnetcat.server.udp.UDPServer;
 
 public class JNetcatProcessFactory {
 
-  public static ProcessAction createProcess(JNetcatParameters params) {
+  public static ProcessAction createProcess(JNetcatParameters params, Observable keyListener) {
     ProcessAction processAction;
 
     if (params.isStartAsServer()) {
@@ -51,6 +52,8 @@ public class JNetcatProcessFactory {
       }
     }
 
+    processAction.setKeyListener(keyListener);
+    
     return processAction;
   }
 }

@@ -25,15 +25,15 @@
  */
 package com.ioleak.jnetcat.common.parsers;
 
-import com.ioleak.jnetcat.common.parsers.exception.UnknownArgumentParserException;
-import com.ioleak.jnetcat.common.parsers.exception.ParserNotInitializatedException;
-import com.ioleak.jnetcat.common.parsers.exception.IllegalArgumentParserException;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import com.ioleak.jnetcat.common.parsers.exception.IllegalArgumentParserException;
+import com.ioleak.jnetcat.common.parsers.exception.ParserNotInitializatedException;
+import com.ioleak.jnetcat.common.parsers.exception.UnknownArgumentParserException;
 
 /**
  * Source: https://github.com/jjenkov/cli-args
@@ -110,7 +110,17 @@ public class ArgumentsParser {
     String value = getStringValue(switchName);
     return value.isBlank() ? defaultValue : value;
   }
+  
+  public int switchIntValue(String switchName) {
+    String intValue = getStringValue(switchName);
+    return Integer.parseInt(intValue.isEmpty() ? "0" : intValue);
+  }
 
+  public int switchIntValue(String switchName, long defaultValue) {
+    String intValue = switchValue(switchName, String.valueOf(defaultValue));
+    return Integer.parseInt(intValue.isEmpty() ? "0" : intValue);
+  }
+  
   public long switchLongValue(String switchName) {
     String longValue = getStringValue(switchName);
     return Long.parseLong(longValue.isEmpty() ? "0" : longValue);

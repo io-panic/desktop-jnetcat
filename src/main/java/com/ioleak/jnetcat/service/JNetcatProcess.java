@@ -29,6 +29,8 @@ import java.io.File;
 
 import com.ioleak.jnetcat.common.Logging;
 import com.ioleak.jnetcat.common.interfaces.ProcessAction;
+import com.ioleak.jnetcat.common.parsers.ArgumentsParser;
+import com.ioleak.jnetcat.common.properties.Observable;
 import com.ioleak.jnetcat.common.utils.JsonUtils;
 import com.ioleak.jnetcat.options.JNetcatParameters;
 import com.ioleak.jnetcat.service.exception.JNetcatProcessFileNotSetException;
@@ -40,8 +42,11 @@ public enum JNetcatProcess
   JNETCATPROCESS;
 
   private File jsonParamsFile;
+  private ArgumentsParser argumentsParser;
+  
   private JNetcatProcessResult resultExecution = JNetcatProcessResult.UNKNOWN;
 
+  private Observable keyListener;
   private ProcessAction processAction;
   private ExitConsumer<JNetcatProcessResult, JNetcatParameters> exitMethod;
 
@@ -52,10 +57,18 @@ public enum JNetcatProcess
     this.jsonParamsFile = jsonParamsFile;
   }
 
+  public void setParametersOverride(ArgumentsParser argumentsParser) {
+    this.argumentsParser = argumentsParser;
+  }
+  
   public void setExitMethod(ExitConsumer<JNetcatProcessResult, JNetcatParameters> exitMethod) {
     this.exitMethod = exitMethod;
   }
 
+  public void setKeyListener(Observable keyListener) {
+    this.keyListener = keyListener;
+  }
+  
   @Override
   public void run() {
     run(getParametersFromFile());
@@ -65,12 +78,14 @@ public enum JNetcatProcess
     if (getResultExecution() == JNetcatProcessResult.IN_PROGRESS) {
       throw new JNetcatProcessRunningException("An execution is already in progress");
     }
-
+    
     Logging.getLogger().info("Starting background process...");
     resultExecution = JNetcatProcessResult.IN_PROGRESS;
 
     if (params != null) {
-      processAction = JNetcatProcessFactory.createProcess(params);
+      params = params.getOverridenParameters(argumentsParser);
+    
+      processAction = JNetcatProcessFactory.createProcess(params, keyListener);
       processAction.start();
 
       resultExecution = processAction.isStateSuccessful() ? JNetcatProcessResult.SUCCESS : JNetcatProcessResult.FAILED;

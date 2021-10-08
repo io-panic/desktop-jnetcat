@@ -40,6 +40,16 @@ public class ClientParametersTCP
       super(ip, port);
     }
 
+    public ParametersBuilder(ClientParametersTCP clientParametersTCP) {
+      super(clientParametersTCP.getIp(), clientParametersTCP.getPort());
+
+      withNbClientMax(clientParametersTCP.getNbClientMax());
+      withNbExecution(clientParametersTCP.getNbExecution());
+      withSleepBetweenExecMs(clientParametersTCP.getSleepBetweenExecMs());
+      withSoTimeout(clientParametersTCP.getSoTimeout());
+      withInteractive(clientParametersTCP.isInteractive());
+    }
+
     @Override
     public ClientParametersTCP build() {
       return new ClientParametersTCP(this);

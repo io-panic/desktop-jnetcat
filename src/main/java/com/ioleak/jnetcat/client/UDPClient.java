@@ -25,6 +25,7 @@
  */
 package com.ioleak.jnetcat.client;
 
+import java.beans.PropertyChangeEvent;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -37,13 +38,17 @@ import com.ioleak.jnetcat.client.exception.ClientSendMessageException;
 import com.ioleak.jnetcat.common.Logging;
 import com.ioleak.jnetcat.common.interfaces.ProcessAction;
 import com.ioleak.jnetcat.common.properties.ObjectProperty;
+import com.ioleak.jnetcat.common.properties.Observable;
 import com.ioleak.jnetcat.options.startup.ClientParametersUDP;
 
 public class UDPClient
         implements ProcessAction, SocketClient {
 
   private static final String SOCKET_NOT_INITIALIZATED = "Not correctly initializated: socket is null";
-  
+
+  private Observable keyListener;
+  private boolean interactive;
+
   private DatagramSocket clientSocket;
   private final String ip;
   private final int port;
@@ -55,6 +60,7 @@ public class UDPClient
     this.ip = clientParametersUDP.getIp();
     this.port = clientParametersUDP.getPort();
     this.soTimeout = clientParametersUDP.getSoTimeout();
+    this.interactive = clientParametersUDP.isInteractive();
   }
 
   @Override
@@ -73,7 +79,7 @@ public class UDPClient
   @Override
   public void sendMessage(String message) {
     checkClientInitializatedOnSend();
-    
+
     try {
       InetAddress address = InetAddress.getByName(ip);
 
@@ -105,6 +111,17 @@ public class UDPClient
   }
 
   @Override
+  public void setKeyListener(Observable keyListener) {
+    this.keyListener = keyListener;
+
+    if (interactive && this.keyListener != null) {
+      keyListener.addListener((PropertyChangeEvent evt) -> {
+        System.out.println("key hit!! " + evt.getNewValue());
+      });
+    }
+  }
+
+  @Override
   public boolean isStateSuccessful() {
     return true;
   }
@@ -129,7 +146,7 @@ public class UDPClient
       throw new ClientReadMessageException(SOCKET_NOT_INITIALIZATED);
     }
   }
-  
+
   private void checkClientInitializatedOnSend() {
     if (clientSocket == null) {
       throw new ClientSendMessageException(SOCKET_NOT_INITIALIZATED);

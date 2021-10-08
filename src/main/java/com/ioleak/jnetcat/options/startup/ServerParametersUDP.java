@@ -44,7 +44,16 @@ public class ServerParametersUDP
       super(port);
     }
 
-    public ParametersBuilder withServerType(UDPServerType udpServerType) {
+    public ParametersBuilder(ServerParametersUDP serverParametersUDP) {
+      super(serverParametersUDP.getPort());
+
+      withIp(serverParametersUDP.getIp());
+      withMultiThread(serverParametersUDP.isMultiThread());
+      withServerType(serverParametersUDP.getServerType());
+      withInteractive(serverParametersUDP.isInteractive());
+    }
+
+    public final ParametersBuilder withServerType(UDPServerType udpServerType) {
       this.udpServerType = udpServerType;
       return this;
     }

@@ -89,7 +89,27 @@ public class ArgumentsParserTest {
     assertEquals("file1.txt", argumentsParser.switchValue("-f", "file2.txt"));
     assertEquals("file1.txt", argumentsParser.switchValue("-f"));
   }
+  
+  @Test
+  public void switchIntValue_EmptyValue_SwitchPresentWithEmpty() {
+    argumentsParser.setArguments(new String[] {"-d"});
+    boolean numSwitch = argumentsParser.switchPresent("-d");
 
+    assertTrue(numSwitch, "Switch should be present");
+    assertEquals(0, argumentsParser.switchIntValue("-d"), "Switch should not contain any value");
+    assertEquals(256, argumentsParser.switchIntValue("-f", 256));
+  }
+
+  @Test
+  public void switchIntValue_ProvideValue_SwitchPresentWithValue() {
+    argumentsParser.setArguments(new String[] {"-d", "512"});
+    boolean fileSwitch = argumentsParser.switchPresent("-d");
+
+    assertTrue(fileSwitch, "Switch should be present");
+    assertEquals(512, argumentsParser.switchIntValue("-d", 256));
+    assertEquals(512, argumentsParser.switchIntValue("-d"));
+  }
+  
   @Test
   public void switchLongValue_EmptyValue_SwitchPresentWithEmpty() {
     argumentsParser.setArguments(new String[] {"-d"});

@@ -28,6 +28,7 @@ package com.ioleak.jnetcat.options;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.ioleak.jnetcat.common.BaseObject;
+import com.ioleak.jnetcat.common.parsers.ArgumentsParser;
 import com.ioleak.jnetcat.options.exception.ClientIncompatibleArgumentException;
 import com.ioleak.jnetcat.options.exception.ServerIncompatibleArgumentException;
 import com.ioleak.jnetcat.options.startup.ClientParametersTCP;
@@ -67,32 +68,53 @@ public class JNetcatParameters
       this.useProtocolTCP = useProtocolTCP;
     }
 
-    public ParametersBuilder withDaemon(boolean daemon) {
+    public ParametersBuilder(JNetcatParameters params) {
+      this.startAsServer = params.startAsServer;
+      this.useProtocolTCP = params.useProtocolTCP;
+
+      withDaemon(params.isDaemon());
+      withClientParametersTCP(params.getClientParametersTCP());
+      withClientParametersUDP(params.getClientParametersUDP());
+      withServerParametersTCP(params.getServerParametersTCP());
+      withServerParametersUDP(params.getServerParametersUDP());
+    }
+
+    public final ParametersBuilder withStartAsServer(boolean startAsServer) {
+      this.startAsServer = startAsServer;
+      return this;
+    }
+
+    public final ParametersBuilder withUseProtocolTCP(boolean useProtocolTCP) {
+      this.useProtocolTCP = useProtocolTCP;
+      return this;
+    }
+
+    public final ParametersBuilder withDaemon(boolean daemon) {
       this.daemon = daemon;
       return this;
     }
 
-    public ParametersBuilder withClientParametersTCP(ClientParametersTCP clientParametersTCP) {
+    public final ParametersBuilder withClientParametersTCP(ClientParametersTCP clientParametersTCP) {
       this.clientParametersTCP = clientParametersTCP;
       return this;
     }
 
-    public ParametersBuilder withServerParametersTCP(ServerParametersTCP serverParametersTCP) {
+    public final ParametersBuilder withServerParametersTCP(ServerParametersTCP serverParametersTCP) {
       this.serverParametersTCP = serverParametersTCP;
       return this;
     }
 
-    public ParametersBuilder withClientParametersUDP(ClientParametersUDP clientParametersUDP) {
+    public final ParametersBuilder withClientParametersUDP(ClientParametersUDP clientParametersUDP) {
       this.clientParametersUDP = clientParametersUDP;
       return this;
     }
 
-    public ParametersBuilder withServerParametersUDP(ServerParametersUDP serverParametersUDP) {
+    public final ParametersBuilder withServerParametersUDP(ServerParametersUDP serverParametersUDP) {
       this.serverParametersUDP = serverParametersUDP;
       return this;
     }
 
-    public JNetcatParameters build() {
+    public final JNetcatParameters build() {
       return new JNetcatParameters(this);
     }
   }
@@ -154,6 +176,63 @@ public class JNetcatParameters
     if (!startAsServer && !useProtocolTCP && clientParametersUDP == null) {
       throw new ClientIncompatibleArgumentException("Missing client UDP parameters");
     }
+  }
+  
+  public JNetcatParameters getOverridenParameters(ArgumentsParser argumentsParser) {
+    if (argumentsParser == null) {
+      return this;
+    }
+    
+    JNetcatParameters.ParametersBuilder jNetcatParametersBuilder = new JNetcatParameters.ParametersBuilder(this);
+    ClientParametersTCP.ParametersBuilder clientParametersTCPBuilder = new ClientParametersTCP.ParametersBuilder(getClientParametersTCP());
+    ClientParametersUDP.ParametersBuilder clientParametersUDPBuilder = new ClientParametersUDP.ParametersBuilder(getClientParametersUDP());
+    ServerParametersTCP.ParametersBuilder serverParametersTCPBuilder = new ServerParametersTCP.ParametersBuilder(getServerParametersTCP());
+    ServerParametersUDP.ParametersBuilder serverParametersUDPBuilder = new ServerParametersUDP.ParametersBuilder(getServerParametersUDP());
+    
+    if (argumentsParser.switchPresent("-c")) {
+      jNetcatParametersBuilder.withStartAsServer(false);
+    }
+    
+    if (argumentsParser.switchPresent("-s")) {
+      jNetcatParametersBuilder.withStartAsServer(true);
+    }
 
+    if (argumentsParser.switchPresent("-u")) {
+      jNetcatParametersBuilder.withUseProtocolTCP(false);
+    }
+    
+    if (argumentsParser.switchPresent("-t")) {
+      jNetcatParametersBuilder.withUseProtocolTCP(true);
+    }
+    
+    if (argumentsParser.switchPresent("-i")) {
+      String ip = argumentsParser.switchValue("-i");
+      
+      clientParametersTCPBuilder.withIp(ip);
+      clientParametersUDPBuilder.withIp(ip);
+      serverParametersTCPBuilder.withIp(ip);
+      serverParametersUDPBuilder.withIp(ip);
+    }
+    
+    if (argumentsParser.switchPresent("-p")) {
+      int port = argumentsParser.switchIntValue("-p");
+      
+      clientParametersTCPBuilder.withPort(port);
+      clientParametersUDPBuilder.withPort(port);
+      serverParametersTCPBuilder.withPort(port);
+      serverParametersUDPBuilder.withPort(port);
+    }
+    
+    if (argumentsParser.switchPresent("-ci")) {
+      clientParametersTCPBuilder.withInteractive(true);
+      clientParametersUDPBuilder.withInteractive(true);
+    }
+    
+    jNetcatParametersBuilder.withClientParametersTCP(clientParametersTCPBuilder.build());
+    jNetcatParametersBuilder.withClientParametersUDP(clientParametersUDPBuilder.build());
+    jNetcatParametersBuilder.withServerParametersTCP(serverParametersTCPBuilder.build());
+    jNetcatParametersBuilder.withServerParametersUDP(serverParametersUDPBuilder.build());
+    
+    return jNetcatParametersBuilder.build();
   }
 }

@@ -34,12 +34,16 @@ public abstract class ServerParameters
         extends BaseObject {
 
   private final boolean multiThread;
+  private boolean interactive;
+
   private final String ip;
   private final Integer port;
 
   abstract static class ParametersBuilder<T extends ParametersBuilder> {
 
     private boolean multiThread = false;
+    private boolean interactive = false;
+
     private int port = -1;
     private String ip = "0.0.0.0";
 
@@ -48,16 +52,26 @@ public abstract class ServerParameters
     protected abstract T self();
 
     public ParametersBuilder(int port) {
-      this.port = port;
+      withPort(port);
     }
 
-    public T withIp(String ip) {
+    public final T withIp(String ip) {
       this.ip = ip;
       return self();
     }
 
-    public T withMultiThread(boolean multiThread) {
+    public final T withPort(int port) {
+      this.port = port;
+      return self();
+    }
+
+    public final T withMultiThread(boolean multiThread) {
       this.multiThread = multiThread;
+      return self();
+    }
+
+    public final T withInteractive(boolean interactive) {
+      this.interactive = interactive;
       return self();
     }
   }
@@ -74,6 +88,7 @@ public abstract class ServerParameters
     this.ip = builder.ip;
     this.port = builder.port;
     this.multiThread = builder.multiThread;
+    this.interactive = builder.interactive;
   }
 
   public String getIp() {
@@ -86,5 +101,9 @@ public abstract class ServerParameters
 
   public boolean isMultiThread() {
     return multiThread;
+  }
+
+  public boolean isInteractive() {
+    return interactive;
   }
 }

@@ -43,12 +43,21 @@ public class ServerParametersTCP
     public ParametersBuilder(@JsonProperty("port") int port) {
       super(port);
     }
+    
+    public ParametersBuilder(ServerParametersTCP serverParametersTCP) {
+      super(serverParametersTCP.getPort());
+      
+      withIp(serverParametersTCP.getIp());
+      withMultiThread(serverParametersTCP.isMultiThread());
+      withServerType(serverParametersTCP.getServerType());
+      withInteractive(serverParametersTCP.isInteractive());
+    }
 
-    public ParametersBuilder withServerType(TCPServerType tcpServerType) {
+    public final ParametersBuilder withServerType(TCPServerType tcpServerType) {
       this.tcpServerType = tcpServerType;
       return this;
     }
-
+    
     @Override
     public ServerParametersTCP build() {
       return new ServerParametersTCP(this);

@@ -25,6 +25,7 @@
  */
 package com.ioleak.jnetcat.client;
 
+import java.beans.PropertyChangeEvent;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -32,18 +33,23 @@ import java.io.PrintWriter;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
+import java.net.SocketException;
 
 import com.ioleak.jnetcat.client.exception.ClientReadMessageException;
 import com.ioleak.jnetcat.client.exception.ClientSendMessageException;
 import com.ioleak.jnetcat.common.Logging;
 import com.ioleak.jnetcat.common.interfaces.ProcessAction;
 import com.ioleak.jnetcat.common.properties.ObjectProperty;
+import com.ioleak.jnetcat.common.properties.Observable;
 import com.ioleak.jnetcat.options.startup.ClientParametersTCP;
 
 public class TCPClient
         implements ProcessAction, SocketClient {
 
   private static final String EXCEPTION_CLIENT_NOT_CONNECTED = "Client is not connected to a server: %s";
+
+  private Observable keyListener;
+  private boolean interactive;
 
   private Socket clientSocket;
   private final String ip;
@@ -56,6 +62,7 @@ public class TCPClient
     this.ip = clientParametersTCP.getIp();
     this.port = clientParametersTCP.getPort();
     this.soTimeout = clientParametersTCP.getSoTimeout();
+    this.interactive = clientParametersTCP.isInteractive();
   }
 
   @Override
@@ -77,6 +84,17 @@ public class TCPClient
       Logging.getLogger().error(String.format("Unable to open a TCP connection on %s:%d [%s]", ip, port, ex.getMessage()));
     } finally {
       updateConnectedProperty();
+    }
+    
+    if (interactive && connectedProperty.get()) {
+      try {
+        clientSocket.setSoTimeout(0);
+        while (!Thread.currentThread().isInterrupted()) {
+          readMessage();
+        }
+      } catch (SocketException ex) {
+        Logging.getLogger().error("Unable to reset soTimeout (indefinite) for interactive mode", ex);
+      }
     }
   }
 
@@ -132,6 +150,26 @@ public class TCPClient
     }
 
     return readData;
+  }
+
+  @Override
+  public void setKeyListener(Observable keyListener) {
+    this.keyListener = keyListener;
+
+    if (interactive && this.keyListener != null) {
+      StringBuilder builder = new StringBuilder();
+      
+      keyListener.addListener((PropertyChangeEvent evt) -> {
+        builder.append(evt.getNewValue());
+        if (evt.getNewValue().equals('\n')) {
+          String message = builder.toString();
+          Logging.getLogger().info(String.format("Sending to server: %s", message.replace("\n", "")));
+          
+          sendMessage(builder.toString());
+          builder.setLength(0);
+        }
+      });
+    }
   }
 
   @Override

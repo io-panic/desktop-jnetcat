@@ -25,9 +25,13 @@
  */
 package com.ioleak.jnetcat.common.interfaces;
 
+import com.ioleak.jnetcat.common.properties.Observable;
+
 public interface ProcessAction {
 
   public void start();
+
+  public void setKeyListener(Observable keyListener);
 
   public boolean isStateSuccessful();
 

@@ -3,8 +3,9 @@
   "useProtocolTCP": true,
   "daemon": false,
   "clientParametersTCP": {
-    "ip": "192.168.135.55",
-    "port": 1,
+    "ip": "127.0.0.1",
+    "port": 8080,
+    "interactive": true,
     "soTimeout": 2500,
     "nbClientMax": 1,
     "nbExecution": 1,

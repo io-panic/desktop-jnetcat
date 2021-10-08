@@ -39,6 +39,16 @@ public class ClientParametersUDP
       super(ip, port);
     }
 
+    public ParametersBuilder(ClientParametersUDP clientParametersUDP) {
+      super(clientParametersUDP.getIp(), clientParametersUDP.getPort());
+
+      withNbClientMax(clientParametersUDP.getNbClientMax());
+      withNbExecution(clientParametersUDP.getNbExecution());
+      withSleepBetweenExecMs(clientParametersUDP.getSleepBetweenExecMs());
+      withSoTimeout(clientParametersUDP.getSoTimeout());
+      withInteractive(clientParametersUDP.isInteractive());
+    }
+
     @Override
     public ClientParametersUDP build() {
       return new ClientParametersUDP(this);

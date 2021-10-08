@@ -32,6 +32,7 @@ import java.net.SocketException;
 import java.util.List;
 
 import com.ioleak.jnetcat.common.Logging;
+import com.ioleak.jnetcat.common.properties.Observable;
 import com.ioleak.jnetcat.options.startup.ServerParametersTCP;
 import com.ioleak.jnetcat.server.generic.Listener;
 import com.ioleak.jnetcat.server.generic.ServerState;
@@ -43,12 +44,26 @@ public class TCPServer
   private ServerSocket serverSocket;
   private ServerState serverState = ServerState.NOT_STARTED;
 
+  private Observable keyListener;
+
   public TCPServer(ServerParametersTCP serverParametersTCP) {
     this(serverParametersTCP.getServerType(), serverParametersTCP.getPort());
   }
 
   private TCPServer(TCPServerType serverType, int port) {
     super(serverType, port);
+  }
+
+  @Override
+  public void setKeyListener(Observable keyListener) {
+    this.keyListener = keyListener;
+
+    // TODO
+    //if (this.keyListener != null) {
+    //  keyListener.addListener((PropertyChangeEvent evt) -> {
+    //    System.out.println("key hit!! " + evt.getNewValue());
+    //  });
+    //}
   }
 
   @Override
