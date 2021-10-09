@@ -110,7 +110,7 @@ public class ArgumentsParser {
     String value = getStringValue(switchName);
     return value.isBlank() ? defaultValue : value;
   }
-  
+
   public int switchIntValue(String switchName) {
     String intValue = getStringValue(switchName);
     return Integer.parseInt(intValue.isEmpty() ? "0" : intValue);
@@ -120,7 +120,7 @@ public class ArgumentsParser {
     String intValue = switchValue(switchName, String.valueOf(defaultValue));
     return Integer.parseInt(intValue.isEmpty() ? "0" : intValue);
   }
-  
+
   public long switchLongValue(String switchName) {
     String longValue = getStringValue(switchName);
     return Long.parseLong(longValue.isEmpty() ? "0" : longValue);

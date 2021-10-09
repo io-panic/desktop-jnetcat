@@ -47,7 +47,7 @@ public class Basic
       socket.receive(request);
 
       String msg = getReceivedString(request);
-      
+
       Logging.getLogger().info("UDP Received data : ");
       System.out.println(StringUtils.toHexWithSpaceSeparator(msg));
 

@@ -113,7 +113,7 @@ public class TCPClientTest {
     assertTrue(tcpClient.connectedProperty().get());
 
     tcpServerMock.write("Hello wait\n");
-    assertEquals("Hello wait", tcpClient.readMessage());
+    assertEquals("Hello wait\n", tcpClient.readMessage());
   }
 
   @Test
@@ -123,7 +123,7 @@ public class TCPClientTest {
 
     tcpServerMock.closeClient();
 
-    assertThrows(ClientReadMessageException.class, () -> tcpClient.readMessage());
+    assertEquals("", tcpClient.readMessage(), "readMessage should return an empty when not connected");
     assertFalse(tcpClient.connectedProperty().get());
   }
 }

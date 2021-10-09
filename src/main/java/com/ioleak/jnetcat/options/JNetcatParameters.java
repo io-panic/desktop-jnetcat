@@ -177,62 +177,56 @@ public class JNetcatParameters
       throw new ClientIncompatibleArgumentException("Missing client UDP parameters");
     }
   }
-  
+
   public JNetcatParameters getOverridenParameters(ArgumentsParser argumentsParser) {
     if (argumentsParser == null) {
       return this;
     }
-    
+
     JNetcatParameters.ParametersBuilder jNetcatParametersBuilder = new JNetcatParameters.ParametersBuilder(this);
     ClientParametersTCP.ParametersBuilder clientParametersTCPBuilder = new ClientParametersTCP.ParametersBuilder(getClientParametersTCP());
     ClientParametersUDP.ParametersBuilder clientParametersUDPBuilder = new ClientParametersUDP.ParametersBuilder(getClientParametersUDP());
     ServerParametersTCP.ParametersBuilder serverParametersTCPBuilder = new ServerParametersTCP.ParametersBuilder(getServerParametersTCP());
     ServerParametersUDP.ParametersBuilder serverParametersUDPBuilder = new ServerParametersUDP.ParametersBuilder(getServerParametersUDP());
-    
-    if (argumentsParser.switchPresent("-c")) {
-      jNetcatParametersBuilder.withStartAsServer(false);
-    }
-    
-    if (argumentsParser.switchPresent("-s")) {
-      jNetcatParametersBuilder.withStartAsServer(true);
+
+    if (argumentsParser.switchPresent("-t")) {
+      boolean useAsServer = argumentsParser.switchValue("-t").equals("s");
+      jNetcatParametersBuilder.withStartAsServer(useAsServer);
     }
 
-    if (argumentsParser.switchPresent("-u")) {
-      jNetcatParametersBuilder.withUseProtocolTCP(false);
+    if (argumentsParser.switchPresent("-c")) {
+      boolean useUDP = argumentsParser.switchValue("-c").equals("u");
+      jNetcatParametersBuilder.withUseProtocolTCP(!useUDP);
     }
-    
-    if (argumentsParser.switchPresent("-t")) {
-      jNetcatParametersBuilder.withUseProtocolTCP(true);
-    }
-    
+
     if (argumentsParser.switchPresent("-i")) {
       String ip = argumentsParser.switchValue("-i");
-      
+
       clientParametersTCPBuilder.withIp(ip);
       clientParametersUDPBuilder.withIp(ip);
       serverParametersTCPBuilder.withIp(ip);
       serverParametersUDPBuilder.withIp(ip);
     }
-    
+
     if (argumentsParser.switchPresent("-p")) {
       int port = argumentsParser.switchIntValue("-p");
-      
+
       clientParametersTCPBuilder.withPort(port);
       clientParametersUDPBuilder.withPort(port);
       serverParametersTCPBuilder.withPort(port);
       serverParametersUDPBuilder.withPort(port);
     }
-    
+
     if (argumentsParser.switchPresent("-ci")) {
       clientParametersTCPBuilder.withInteractive(true);
       clientParametersUDPBuilder.withInteractive(true);
     }
-    
+
     jNetcatParametersBuilder.withClientParametersTCP(clientParametersTCPBuilder.build());
     jNetcatParametersBuilder.withClientParametersUDP(clientParametersUDPBuilder.build());
     jNetcatParametersBuilder.withServerParametersTCP(serverParametersTCPBuilder.build());
     jNetcatParametersBuilder.withServerParametersUDP(serverParametersUDPBuilder.build());
-    
+
     return jNetcatParametersBuilder.build();
   }
 }

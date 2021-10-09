@@ -65,13 +65,13 @@ public class Quote
       socket.receive(request);
 
       String msg = getReceivedString(request);
-      
+
       Logging.getLogger().info("UDP Received data : ");
       System.out.println(StringUtils.toHexWithSpaceSeparator(msg));
-      
+
       int selectedQuoteIndex = new Random().nextInt(quotes.size());
       String selectedQuote = quotes.get(selectedQuoteIndex);
-      
+
       sendToClient(socket, request, selectedQuote.getBytes());
     }
   }
@@ -103,7 +103,7 @@ public class Quote
 
     DatagramPacket response = new DatagramPacket(data, data.length, clientAddress, clientPort);
     socket.send(response);
-    
+
     Logging.getLogger().info(String.format("Response sent to %s:%d", clientAddress.getHostAddress(), clientPort));
   }
 

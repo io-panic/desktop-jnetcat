@@ -43,7 +43,7 @@ public enum JNetcatProcess
 
   private File jsonParamsFile;
   private ArgumentsParser argumentsParser;
-  
+
   private JNetcatProcessResult resultExecution = JNetcatProcessResult.UNKNOWN;
 
   private Observable keyListener;
@@ -60,7 +60,7 @@ public enum JNetcatProcess
   public void setParametersOverride(ArgumentsParser argumentsParser) {
     this.argumentsParser = argumentsParser;
   }
-  
+
   public void setExitMethod(ExitConsumer<JNetcatProcessResult, JNetcatParameters> exitMethod) {
     this.exitMethod = exitMethod;
   }
@@ -68,7 +68,7 @@ public enum JNetcatProcess
   public void setKeyListener(Observable keyListener) {
     this.keyListener = keyListener;
   }
-  
+
   @Override
   public void run() {
     run(getParametersFromFile());
@@ -78,13 +78,13 @@ public enum JNetcatProcess
     if (getResultExecution() == JNetcatProcessResult.IN_PROGRESS) {
       throw new JNetcatProcessRunningException("An execution is already in progress");
     }
-    
+
     Logging.getLogger().info("Starting background process...");
     resultExecution = JNetcatProcessResult.IN_PROGRESS;
 
     if (params != null) {
       params = params.getOverridenParameters(argumentsParser);
-    
+
       processAction = JNetcatProcessFactory.createProcess(params, keyListener);
       processAction.start();
 

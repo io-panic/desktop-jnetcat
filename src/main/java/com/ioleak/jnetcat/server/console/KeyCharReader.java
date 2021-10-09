@@ -40,6 +40,8 @@ public class KeyCharReader
   private static final String THREAD_FORMAT_NAME = "Thread-%s";
   private static final int WAIT_DELAY_NEXT_CHAR_MS = 100;
 
+  private static final String COMMAND_STARTS_WITH = ":!";
+  
   private Supplier<Boolean> actionOnKeyS;
   private Supplier<Boolean> actionOnKeyQ;
 
@@ -76,44 +78,30 @@ public class KeyCharReader
   }
 
   public void showInfo() {
-    Logging.getLogger().info("Hit key 'k' to kill this key listener");
+    Logging.getLogger().info(String.format("Hit key '%sk' to kill this key listener", COMMAND_STARTS_WITH));
 
     if (this.actionOnKeyS != null) {
-      Logging.getLogger().info("Hit key 's' to stop an established connection");
+      Logging.getLogger().info(String.format("Hit key '%ss' to stop an established connection", COMMAND_STARTS_WITH));
     }
 
     if (this.actionOnKeyQ != null) {
-      Logging.getLogger().info("Hit key 'q' to close this server");
+      Logging.getLogger().info(String.format("Hit key '%sq' to close this server", COMMAND_STARTS_WITH));
     }
   }
 
   public boolean readChar() {
     boolean charValid = true;
+    StringBuilder command = new StringBuilder();
 
     try {
       while (charValid) {
         char key = (char) System.in.read();
         charValid = (key != 65535 && key != -1);
 
-        switch (Character.toLowerCase(key)) {
-          case 'k':
-            throw new HitKeyCloseCharReaderException("Exit program: k key used");
-          case 'q':
-            if (actionOnKeyQ != null) {
-              keyboardHitQuit = actionOnKeyQ.get();
-            } else {
-              Logging.getLogger().warn("No action is defined as a quit (q) action. No action is taken");
-            }
-            break;
-          case 's':
-            if (actionOnKeyS != null) {
-              keyboardHitStop = actionOnKeyS.get();
-            } else {
-              Logging.getLogger().warn("No action is defined as a stop (s) action. No action is taken");
-            }
-            break;
-          default:
-            break;
+        buildCommandString(command, key);
+        if (command.length() == 3) {
+          executeCommand(command.toString());
+          clearCommandIfComplete(command);
         }
 
         if (charValid) {
@@ -126,6 +114,57 @@ public class KeyCharReader
     }
 
     return charValid;
+  }
+
+  private void buildCommandString(StringBuilder command, char key) {
+    if (key == ':') {
+      command.append(key);
+    }
+
+    if (key == '!') {
+      if (command.toString().equals(":")) {
+        command.append(key);
+      } else {
+        command.setLength(0);
+      }
+    }
+
+    if (key == 'k' || key == 'q' || key == 's') {
+      if (command.toString().equals(COMMAND_STARTS_WITH)) {
+        command.append(key);
+      } else {
+        command.setLength(0);
+      }
+    }
+  }
+
+  private void executeCommand(String command) {
+    switch (command) {
+      case ":!k":
+        throw new HitKeyCloseCharReaderException("Exit program: k key used");
+      case ":!q":
+        if (actionOnKeyQ != null) {
+          keyboardHitQuit = actionOnKeyQ.get();
+        } else {
+          Logging.getLogger().warn("No action is defined as a quit (q) action. No action is taken");
+        }
+        break;
+      case ":!s":
+        if (actionOnKeyS != null) {
+          keyboardHitStop = actionOnKeyS.get();
+        } else {
+          Logging.getLogger().warn("No action is defined as a stop (s) action. No action is taken");
+        }
+        break;
+      default:
+        break;
+    }
+  }
+
+  private void clearCommandIfComplete(StringBuilder command) {
+    if (command.length() == 3 && command.toString().startsWith(COMMAND_STARTS_WITH)) {
+      command.setLength(0);
+    }
   }
 
   public boolean isKeyStopPressed() {

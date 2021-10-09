@@ -53,7 +53,7 @@ public class JNetcatProcessFactory {
     }
 
     processAction.setKeyListener(keyListener);
-    
+
     return processAction;
   }
 }

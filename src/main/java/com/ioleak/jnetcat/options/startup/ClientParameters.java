@@ -42,7 +42,7 @@ public abstract class ClientParameters
 
   private final int soTimeout;
   private final boolean interactive;
-  
+
   abstract static class ParametersBuilder<T extends ParametersBuilder> {
 
     private int port = -1;
@@ -54,7 +54,7 @@ public abstract class ClientParameters
     private int sleepBetweenExecMs = 1000;
 
     private boolean interactive = false;
-    
+
     abstract ClientParameters build();
 
     protected abstract T self();
@@ -68,12 +68,12 @@ public abstract class ClientParameters
       this.ip = ip;
       return self();
     }
-    
+
     public T withPort(int port) {
       this.port = port;
       return self();
     }
-    
+
     public T withSoTimeout(int soTimeout) {
       this.soTimeout = soTimeout;
       return self();
@@ -93,7 +93,7 @@ public abstract class ClientParameters
       this.sleepBetweenExecMs = sleepBetweenExecMs;
       return self();
     }
-    
+
     public T withInteractive(boolean interactive) {
       this.interactive = interactive;
       return self();
@@ -141,7 +141,7 @@ public abstract class ClientParameters
   public int getSleepBetweenExecMs() {
     return sleepBetweenExecMs;
   }
-  
+
   public boolean isInteractive() {
     return interactive;
   }

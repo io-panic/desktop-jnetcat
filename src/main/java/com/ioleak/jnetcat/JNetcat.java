@@ -29,7 +29,7 @@ import java.io.File;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Date;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Timer;
 import java.util.concurrent.CountDownLatch;
@@ -154,15 +154,13 @@ public class JNetcat {
   }
 
   private static Map<String, String> getParametersMapping() {
-    Map<String, String> parameters = new HashMap<>();
+    Map<String, String> parameters = new LinkedHashMap<>();
     parameters.put("-f", "Configuration file to use for default parameters");
     parameters.put("-i", "Override IP parameter");
     parameters.put("-p", "Override Port parameter");
-    parameters.put("-c", "Act as a client");
-    parameters.put("-s", "Act as a server");
+    parameters.put("-t", "<c|s> Act as: c-> client [default], s-> server");
+    parameters.put("-c", "<t|u> Connect using: t-> TCP [default], u-> UDP");
     parameters.put("-ci", "interactive mode");
-    parameters.put("-u", "Use UDP");
-    parameters.put("-t", "Use TCP");
 
     return parameters;
   }

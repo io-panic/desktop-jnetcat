@@ -74,27 +74,27 @@ public class KeyCharReaderTest {
 
   @Test
   public void readChar_HitKeyQ_FunctionExecuted() throws IOException, InterruptedException {
-    System.setIn(new ByteArrayInputStream("q".getBytes()));
+    System.setIn(new ByteArrayInputStream(":!q".getBytes()));
     keyCharReader.readChar();
 
     assertTrue(event != null);
-    assertEquals("q", stringEventReceived.toString());
+    assertEquals(":!q", stringEventReceived.toString());
     assertTrue(hitKeyQ);
   }
 
   @Test
   public void readChar_HitKeyS_FunctionExecuted() throws IOException, InterruptedException {
-    System.setIn(new ByteArrayInputStream("s".getBytes()));
+    System.setIn(new ByteArrayInputStream(":!s".getBytes()));
     keyCharReader.readChar();
 
     assertTrue(event != null);
-    assertEquals("s", stringEventReceived.toString());
+    assertEquals(":!s", stringEventReceived.toString());
     assertTrue(hitKeyS);
   }
 
   @Test
   public void readChar_HitKeyK_ThrowsException() throws IOException, InterruptedException {
-    System.setIn(new ByteArrayInputStream("k".getBytes()));
+    System.setIn(new ByteArrayInputStream(":!k".getBytes()));
     assertThrows(HitKeyCloseCharReaderException.class, () -> keyCharReader.readChar());
   }
 
