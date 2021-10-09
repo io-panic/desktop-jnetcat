@@ -4,7 +4,7 @@ SETLOCAL ENABLEDELAYEDEXPANSION
 SET CONFIGFILE="conf/AllOptionsInOne.json"
 SET LOG4J2XML="conf/log4j2.xml"
 
-SET JAR=jnetcat-1.0.0-RC1.jar
+SET JAR=jnetcat-1.0.0-RC2.jar
 
 SET LOCALDIR=%~dp0
 SET JAVA_HOME=%LOCALDIR%jre
