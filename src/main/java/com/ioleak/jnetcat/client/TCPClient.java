@@ -91,7 +91,10 @@ public class TCPClient
 
     if (interactive) {
       try {
-        clientSocket.setSoTimeout(0);
+        if (connectedProperty.get()) {
+          clientSocket.setSoTimeout(0);
+        }
+        
         while (connectedProperty.get() && !Thread.currentThread().isInterrupted()) {
           String response = readMessage();
           System.out.print(response);
