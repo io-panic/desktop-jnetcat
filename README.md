@@ -2,8 +2,8 @@
 
 A tool to easily debug or monitor traffic on TCP/UDP and fake a server or a client
   * Easier and more verbose than telnet (and work as an UDP 'telnet')
+    + Verify is a port is open
   * No installation required, just unzip the package
-  * Verify is a port is open
 
 Debug your application network issues :
   * Start in server mode (without multithreading) to see how your app act when server won't respond
