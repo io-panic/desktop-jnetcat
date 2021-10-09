@@ -119,6 +119,9 @@ public class TCPClient
         clientSocket.close();
         throw new ClientSendMessageException(EXCEPTION_CLIENT_NOT_CONNECTED);
       }
+
+      Logging.getLogger().info(String.format("Sending [to: %s] message: %s", clientSocket.getRemoteSocketAddress(), msg.replace("\n", "")));
+
     } catch (IOException ex) {
       Logging.getLogger().error(String.format("sendMessage error: ", ex.getMessage()));
       if (clientSocket != null) {
@@ -193,9 +196,6 @@ public class TCPClient
       keyListener.addListener((PropertyChangeEvent evt) -> {
         builder.append(evt.getNewValue());
         if (evt.getNewValue().equals('\n')) {
-          String message = builder.toString();
-          Logging.getLogger().info(String.format("Sending to server: %s", message.replace("\n", "")));
-
           sendMessage(builder.toString());
           builder.setLength(0);
         }

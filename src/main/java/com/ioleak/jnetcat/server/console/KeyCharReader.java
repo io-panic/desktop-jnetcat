@@ -28,6 +28,8 @@ package com.ioleak.jnetcat.server.console;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 import java.util.function.Supplier;
 
 import com.ioleak.jnetcat.common.Logging;
@@ -37,10 +39,15 @@ public class KeyCharReader
         implements Observable {
 
   private final PropertyChangeSupport listenerManager = new PropertyChangeSupport(this);
+  
+  private static final List<Character> supportedCommands = Arrays.asList('k', 'q', 's');
+  private static final Character COMMAND_STARTS_WITH_FIRST = ':';
+  private static final Character COMMAND_STARTS_WITH_SECOND = '!';
+  private static final String COMMAND_STARTS_WITH_FULL = String.format("%s%s", COMMAND_STARTS_WITH_FIRST, COMMAND_STARTS_WITH_SECOND);
+  
   private static final String THREAD_FORMAT_NAME = "Thread-%s";
   private static final int WAIT_DELAY_NEXT_CHAR_MS = 100;
 
-  private static final String COMMAND_STARTS_WITH = ":!";
   
   private Supplier<Boolean> actionOnKeyS;
   private Supplier<Boolean> actionOnKeyQ;
@@ -78,14 +85,14 @@ public class KeyCharReader
   }
 
   public void showInfo() {
-    Logging.getLogger().info(String.format("Hit key '%sk' to kill this key listener", COMMAND_STARTS_WITH));
+    Logging.getLogger().info(String.format("Hit key '%sk' to kill this key listener", COMMAND_STARTS_WITH_FULL));
 
     if (this.actionOnKeyS != null) {
-      Logging.getLogger().info(String.format("Hit key '%ss' to stop an established connection", COMMAND_STARTS_WITH));
+      Logging.getLogger().info(String.format("Hit key '%ss' to stop an established connection", COMMAND_STARTS_WITH_FULL));
     }
 
     if (this.actionOnKeyQ != null) {
-      Logging.getLogger().info(String.format("Hit key '%sq' to close this server", COMMAND_STARTS_WITH));
+      Logging.getLogger().info(String.format("Hit key '%sq' to close this server", COMMAND_STARTS_WITH_FULL));
     }
   }
 
@@ -117,20 +124,20 @@ public class KeyCharReader
   }
 
   private void buildCommandString(StringBuilder command, char key) {
-    if (key == ':') {
+    if (key == COMMAND_STARTS_WITH_FIRST) {
       command.append(key);
     }
 
-    if (key == '!') {
-      if (command.toString().equals(":")) {
+    if (key == COMMAND_STARTS_WITH_SECOND) {
+      if (command.toString().equals(COMMAND_STARTS_WITH_FIRST.toString())) {
         command.append(key);
       } else {
         command.setLength(0);
       }
     }
 
-    if (key == 'k' || key == 'q' || key == 's') {
-      if (command.toString().equals(COMMAND_STARTS_WITH)) {
+    if (supportedCommands.contains(key)) {
+      if (command.toString().equals(COMMAND_STARTS_WITH_FULL)) {
         command.append(key);
       } else {
         command.setLength(0);
@@ -162,7 +169,7 @@ public class KeyCharReader
   }
 
   private void clearCommandIfComplete(StringBuilder command) {
-    if (command.length() == 3 && command.toString().startsWith(COMMAND_STARTS_WITH)) {
+    if (command.length() == 3 && command.toString().startsWith(COMMAND_STARTS_WITH_FULL)) {
       command.setLength(0);
     }
   }

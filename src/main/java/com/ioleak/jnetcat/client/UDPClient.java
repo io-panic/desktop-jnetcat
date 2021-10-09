@@ -74,6 +74,22 @@ public class UDPClient
     } catch (SocketException ex) {
       Logging.getLogger().error("Socket error", ex);
     }
+
+    if (interactive) {
+      try {
+        clientSocket.setSoTimeout(0);
+        while (!Thread.currentThread().isInterrupted()) {
+          String response = readMessage();
+          System.out.print(response);
+          //System.out.println(StringUtils.toStringWithLineSeparator(StringUtils.toHexWithSpaceSeparator(response)));
+        }
+      } catch (SocketException ex) {
+        Logging.getLogger().error("Unable to reset soTimeout (indefinite) for interactive mode", ex);
+      }
+    } else {
+      sendMessage("");
+      System.out.println(readMessage());
+    }
   }
 
   @Override
@@ -86,7 +102,7 @@ public class UDPClient
       DatagramPacket request = new DatagramPacket(message.getBytes(), message.getBytes().length, address, port);
       clientSocket.send(request);
 
-      Logging.getLogger().info(String.format("Sending [to: %s] message: %s", address.getHostAddress(), message));
+      Logging.getLogger().info(String.format("Sending [to: %s] message: %s", address.getHostAddress(), message.replace("\n", "")));
 
     } catch (UnknownHostException ex) {
       throw new ClientSendMessageException("Unknown host", ex);
@@ -115,8 +131,14 @@ public class UDPClient
     this.keyListener = keyListener;
 
     if (interactive && this.keyListener != null) {
+      StringBuilder builder = new StringBuilder();
+
       keyListener.addListener((PropertyChangeEvent evt) -> {
-        System.out.println("key hit!! " + evt.getNewValue());
+        builder.append(evt.getNewValue());
+        if (evt.getNewValue().equals('\n')) {
+          sendMessage(builder.toString());
+          builder.setLength(0);
+        }
       });
     }
   }
