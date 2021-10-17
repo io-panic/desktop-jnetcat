@@ -23,56 +23,49 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.ioleak.jnetcat.common.properties;
+package com.ioleak.jnetcat.formatter;
 
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeSupport;
+import com.ioleak.jnetcat.common.utils.StringUtils;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-public class ObjectProperty<T>
-        implements Observable {
 
-  public final static String PROPERTYNAME = "object";
-
-  private final PropertyChangeSupport listenerManager = new PropertyChangeSupport(this);
-  private T object;
-  private boolean verifyEquals = false;
+// TODO
+public class PrettyHexStringOutputTest {
   
-  public ObjectProperty() {
-    this(null);
-  }
-
-  public ObjectProperty(T objectValue) {
-    this.object = objectValue;
-  }
-
-  public void setVerifyEquals(boolean verifyEquals) {
-    this.verifyEquals = verifyEquals;
+  @BeforeAll
+  public static void setUpClass() {
   }
   
-  @Override
-  public void addListener(PropertyChangeListener listener) {
-    listenerManager.addPropertyChangeListener(listener);
+  @AfterAll
+  public static void tearDownClass() {
+  }
+  
+  @BeforeEach
+  public void setUp() {
+  }
+  
+  @AfterEach
+  public void tearDown() {
   }
 
-  @Override
-  public void removeListener(PropertyChangeListener listener) {
-    listenerManager.removePropertyChangeListener(listener);
+  @Test
+  public void testFormatDataOutput() {
+    int a = 40;
+    int b = 41;
+    int c = 42;
+    int d = 43;
+    
+    int e = ((a << 24) & 0xFFFFFFFF) + ((b << 16) & 0xFFFFFFFF) + ((c << 8) & 0xFFFFFFFF) + (d & 0xFFFFFFFF);
+    System.out.println(StringUtils.toHex((40 << 24) & 0xFFFFFFFF));
+    System.out.println(StringUtils.toHex(e));
   }
 
-  public T get() {
-    return object;
-  }
+  @Test
+  public void testGetEndOfStreamData() {
 
-  public void set(T object) {
-    if (!verifyEquals) {
-      if (this.object == object) {
-        this.object = null;
-      }
-    }
-      
-    PropertyChangeEvent event = new PropertyChangeEvent(this, PROPERTYNAME, this.object, object);
-    this.object = object;
-    listenerManager.firePropertyChange(event);
-  }
+  }  
 }

@@ -29,6 +29,7 @@ import com.ioleak.jnetcat.client.exception.ClientReadMessageException;
 import com.ioleak.jnetcat.client.exception.ClientSendMessageException;
 import com.ioleak.jnetcat.client.mock.UDPServerMock;
 import com.ioleak.jnetcat.common.Logging;
+import com.ioleak.jnetcat.formatter.PrettyHexStringOutput;
 import com.ioleak.jnetcat.options.startup.ClientParametersUDP;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -65,38 +66,33 @@ public class UDPClientTest {
 
   @Test
   public void sendMessage_ClientNotStarted_ExceptionThrown() {
-    ClientParametersUDP clientParametersUDP = new ClientParametersUDP.ParametersBuilder("127.0.0.1", udpServerMock.getPort()).build();
-    UDPClient udpClient = new UDPClient(clientParametersUDP);
-
+    UDPClient udpClient = getUDPClient(null);
     assertThrows(ClientSendMessageException.class, () -> udpClient.sendMessage("Hello wait"));
   }
 
   @Test
   public void readMessage_ClientNotStarted_ExceptionThrown() {
-    ClientParametersUDP clientParametersUDP = new ClientParametersUDP.ParametersBuilder("127.0.0.1", udpServerMock.getPort()).build();
-    UDPClient udpClient = new UDPClient(clientParametersUDP);
-
+    UDPClient udpClient = getUDPClient(null);
     assertThrows(ClientReadMessageException.class, () -> udpClient.readMessage());
   }
 
   @Test
   public void readMessage_ParameterTimeout_ExceptionThrownWithRightTimeout() {
     ClientParametersUDP clientParametersUDP = new ClientParametersUDP.ParametersBuilder("127.0.0.1", udpServerMock.getPort()).withSoTimeout(1000).build();
-    UDPClient udpClient = new UDPClient(clientParametersUDP);
-    
+    UDPClient udpClient = getUDPClient(clientParametersUDP);
+
     long startTime = System.currentTimeMillis();
     udpClient.start();
 
     assertThrows(ClientReadMessageException.class, () -> udpClient.readMessage());
-    
+
     long timeDiff = System.currentTimeMillis() - startTime;
     assertTrue(timeDiff > 1000 && timeDiff < 2000);
   }
-  
+
   @Test
   public void sendMessage_ClientStarted_ExceptionThrown() {
-    ClientParametersUDP clientParametersUDP = new ClientParametersUDP.ParametersBuilder("127.0.0.1", udpServerMock.getPort()).build();
-    UDPClient udpClient = new UDPClient(clientParametersUDP);
+    UDPClient udpClient = getUDPClient(null);
     udpClient.start();
     udpClient.sendMessage("1");
 
@@ -110,11 +106,22 @@ public class UDPClientTest {
     ClientParametersUDP clientParametersUDP = new ClientParametersUDP.ParametersBuilder("23.28.179.206", 17).withSoTimeout(0).build();
     //UDPClient udpConnect = new UDPClient("djxmmx.net", 17);
 
-    UDPClient udpConnect = new UDPClient(clientParametersUDP);
+    UDPClient udpConnect = getUDPClient(clientParametersUDP);
     udpConnect.start();
     udpConnect.sendMessage("1");
     System.out.println(udpConnect.readMessage());
     udpConnect.sendMessage("2");
     System.out.println(udpConnect.readMessage());
+  }
+
+  public UDPClient getUDPClient(ClientParametersUDP clientParametersUDP) {
+    if (clientParametersUDP == null) {
+      clientParametersUDP = new ClientParametersUDP.ParametersBuilder("127.0.0.1", udpServerMock.getPort()).build();
+    }
+    
+    UDPClient udpClient = new UDPClient(clientParametersUDP);
+    udpClient.setFormatOutput(new PrettyHexStringOutput(null, 20));  // TODO replace with a more BASIC formatter
+
+    return udpClient;
   }
 }

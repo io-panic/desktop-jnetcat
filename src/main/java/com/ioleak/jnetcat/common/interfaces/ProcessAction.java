@@ -26,16 +26,19 @@
 package com.ioleak.jnetcat.common.interfaces;
 
 import com.ioleak.jnetcat.common.properties.Observable;
+import com.ioleak.jnetcat.formatter.StreamFormatOutput;
 
 public interface ProcessAction {
 
   public void start();
-
-  public void setKeyListener(Observable keyListener);
 
   public boolean isStateSuccessful();
 
   public boolean stopActiveExecution();
 
   public boolean stopExecutions();
+
+  public void setKeyListener(Observable keyListener);
+
+  public void setFormatOutput(StreamFormatOutput streamFormatOutput);
 }

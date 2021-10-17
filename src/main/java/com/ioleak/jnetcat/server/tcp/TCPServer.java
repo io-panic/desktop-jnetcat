@@ -33,6 +33,8 @@ import java.util.List;
 
 import com.ioleak.jnetcat.common.Logging;
 import com.ioleak.jnetcat.common.properties.Observable;
+import com.ioleak.jnetcat.formatter.StreamFormatOutput;
+import com.ioleak.jnetcat.formatter.exception.StreamNoDataException;
 import com.ioleak.jnetcat.options.startup.ServerParametersTCP;
 import com.ioleak.jnetcat.server.generic.Listener;
 import com.ioleak.jnetcat.server.generic.ServerState;
@@ -45,7 +47,8 @@ public class TCPServer
   private ServerState serverState = ServerState.NOT_STARTED;
 
   private Observable keyListener;
-
+  private StreamFormatOutput streamFormatOutput;
+  
   public TCPServer(ServerParametersTCP serverParametersTCP) {
     this(serverParametersTCP.getServerType(), serverParametersTCP.getPort());
   }
@@ -58,12 +61,17 @@ public class TCPServer
   public void setKeyListener(Observable keyListener) {
     this.keyListener = keyListener;
 
-    // TODO
+    // TODO : sent some data to client
     //if (this.keyListener != null) {
     //  keyListener.addListener((PropertyChangeEvent evt) -> {
     //    System.out.println("key hit!! " + evt.getNewValue());
     //  });
     //}
+  }
+
+  @Override
+  public void setFormatOutput(StreamFormatOutput streamFormatOutput) {
+    this.streamFormatOutput = streamFormatOutput;
   }
 
   @Override
@@ -84,10 +92,14 @@ public class TCPServer
           Logging.getLogger().info(String.format("Connection received from %s", socket.getRemoteSocketAddress()));
 
           try {
-            getServerType().getClient().startClient(socket);
+            getServerType().getClient().startClient(socket, streamFormatOutput);
           } catch (SocketException ex) {
             Logging.getLogger().info(String.format("Socket failure: %s", ex.getMessage()));
+          } catch (StreamNoDataException ex) {
+            Logging.getLogger().info(String.format("Connection lost to client: %s", ex.getMessage()));
           }
+          
+          getConnectionClients().remove(socket);
           Logging.getLogger().info(String.format("Connection closed on client %s", socket.getRemoteSocketAddress()));
         } catch (IOException ex) {
           if (!serverSocket.isClosed()) {
@@ -96,8 +108,8 @@ public class TCPServer
         }
       }
     } catch (IOException ex) {
-      if (!serverSocket.isClosed()) {
-        Logging.getLogger().info(String.format("Unable to start TCP listener"));
+      if (serverSocket == null || !serverSocket.isClosed()) {
+        Logging.getLogger().info(String.format("Unable to start TCP listener: %s", ex.getMessage()));
       }
     }
 

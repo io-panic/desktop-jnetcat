@@ -35,7 +35,9 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 import java.util.Random;
 
 import com.ioleak.jnetcat.JNetcat;
@@ -45,38 +47,19 @@ import com.ioleak.jnetcat.common.utils.JsonUtils;
 import com.ioleak.jnetcat.common.utils.StringUtils;
 import com.ioleak.jnetcat.server.udp.UDPClientConnection;
 
-public class Quote
-        implements UDPClientConnection {
+public class Quote 
+        extends UDPClientConnection {
 
   public static final int MAX_PACKET_LENGTH = 1;
   public static final String DEFAULT_QUOTES_TXT = "conf/quotes.txt";
   private List<String> quotes = new ArrayList<>();
+ private Queue<String> commands = new LinkedList<>();
 
   public Quote() {
     loadQuote(DEFAULT_QUOTES_TXT);
   }
 
-  @Override
-  public void startClient(DatagramSocket socket) throws IOException {
-    byte[] buffer = new byte[MAX_PACKET_LENGTH];
-    DatagramPacket request = new DatagramPacket(buffer, buffer.length);
-
-    while (!Thread.currentThread().isInterrupted()) {
-      socket.receive(request);
-
-      String msg = getReceivedString(request);
-
-      Logging.getLogger().info("UDP Received data : ");
-      System.out.println(StringUtils.toHexWithSpaceSeparator(msg));
-
-      int selectedQuoteIndex = new Random().nextInt(quotes.size());
-      String selectedQuote = quotes.get(selectedQuoteIndex);
-
-      sendToClient(socket, request, selectedQuote.getBytes());
-    }
-  }
-
-  public void loadQuote(String relativePath) {
+  private void loadQuote(String relativePath) {
     URL url = JsonUtils.getRelativePath(relativePath, JNetcat.class);
 
     try {
@@ -95,23 +78,26 @@ public class Quote
     }
   }
 
-  private void sendToClient(DatagramSocket socket, DatagramPacket request, byte[] data)
-          throws IOException {
-
-    InetAddress clientAddress = request.getAddress();
-    int clientPort = request.getPort();
-
-    DatagramPacket response = new DatagramPacket(data, data.length, clientAddress, clientPort);
-    socket.send(response);
-
-    Logging.getLogger().info(String.format("Response sent to %s:%d", clientAddress.getHostAddress(), clientPort));
+  @Override
+  public void dataRead(String readData) {
+    commands.add(StringUtils.removeLastCharIfCRLF(readData));
   }
 
-  private String getReceivedString(DatagramPacket request) {
-    byte[] receivedData = request.getData();
-    byte[] trimmedData = new byte[request.getLength()];
-    System.arraycopy(receivedData, 0, trimmedData, 0, trimmedData.length);
-
-    return new String(trimmedData);
+  @Override
+  public void dataSend(DatagramSocket datagramSocket, DatagramPacket request) throws IOException {
+    String response = "Unknown command sent. Please retry";
+    String lastCommand = commands.poll();
+    
+    if (lastCommand != null && lastCommand.equals("1")) {
+      int selectedQuoteIndex = new Random().nextInt(quotes.size());
+      response = quotes.get(selectedQuoteIndex);
+    }
+    
+    InetAddress clientAddress = request.getAddress();
+    int clientPort = request.getPort();
+    byte[] data = StringUtils.getBytesFromString(response);
+    
+    // Logging.getLogger().info(String.format("Response sent to %s:%d", clientAddress.getHostAddress(), clientPort));
+    datagramSocket.send(new DatagramPacket(data, data.length, clientAddress, clientPort));
   }
 }

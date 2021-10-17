@@ -26,11 +26,14 @@
 package com.ioleak.jnetcat.common.utils;
 
 import java.nio.charset.Charset;
+import java.util.List;
 import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class StringUtils {
+
+  public static final Charset DEFAULT_ENCODING_NETWORK = Charset.forName("ISO-8859-1"); // 8 bits
 
   private static final int DEFAULT_STRINGBUILDER_CAPACITY = 250;
   private static final int NB_CHAR_BETWEEN_LINES = 50;
@@ -41,22 +44,84 @@ public class StringUtils {
   private StringUtils() {
   }
 
+  public static String toHex(int value) {
+    return String.format("%04X", value);
+  }
+
   public static String toHex(String stringToHex) {
     if (stringToHex == null || stringToHex.isEmpty()) {
       return "";
     }
 
     StringBuilder buf = new StringBuilder(DEFAULT_STRINGBUILDER_CAPACITY);
-    for (int ch : stringToHex.getBytes(Charset.forName("UTF-8"))) {
-      buf.append(String.format("%02X", ch));
+    byte[] stringBytes = getBytesFromString(stringToHex);
+    int data = 0;
+    int shift = 1;
+
+    for (byte ch : stringBytes) {
+      ch = (byte) (ch & 0xFF);
+
+      if (shift == 1) {
+        data += ch << 8 & 0xFFFF;
+      } else {
+        data += ch & 0x00FF;
+      }
+
+      shift--;
+      if (shift < 0) {
+        buf.append(toHex(data));
+
+        shift = 1;
+        data = 0;
+      }
+    }
+
+    if (data != 0) {
+      buf.append(toHex(data));
     }
 
     return buf.toString();
   }
 
+  public static String getStringFromBytes(List<Byte> data) {
+    byte[] bytes = new byte[data.size()];
+    for (int i = 0; i < data.size(); i++) {
+      bytes[i] = (byte) (data.get(i) & 0xFF);
+    }
+
+    return new String(bytes, DEFAULT_ENCODING_NETWORK);
+  }
+
+  public static byte[] getBytesFromString(String data) {
+    return data.getBytes(DEFAULT_ENCODING_NETWORK);
+  }
+
+  public static String removeLastCharIfCRLF(final String stringToClean) {
+    boolean lastCharCRLF = false;
+    String cleanedString = "";
+
+    if (stringToClean != null && !stringToClean.isEmpty()) {
+      cleanedString = stringToClean;
+      
+      do {
+        int length = cleanedString.length() - 1;
+        lastCharCRLF = (length >= 0);
+        if (lastCharCRLF) {
+          byte lastChar = (byte) cleanedString.charAt(length);
+          lastCharCRLF = (lastChar == 10 || lastChar == 13);
+          if (lastCharCRLF) {
+            cleanedString = cleanedString.substring(0, length);
+          }
+        }
+      } while (lastCharCRLF);
+    }
+
+    return cleanedString;
+  }
+
   public static String toHexWithSpaceSeparator(String stringToHex) {
     stringToHex = toHex(stringToHex);
-    return String.join(" ", stringToHex.split("(?<=\\G.{2})"));
+    return String.join(" ", stringToHex.split("(?<=\\G.{4})"));
   }
 
   public static String toStringWithLineSeparator(String stringToLineSeparator) {

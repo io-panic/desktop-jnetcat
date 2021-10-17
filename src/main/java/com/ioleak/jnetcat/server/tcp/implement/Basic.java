@@ -25,48 +25,26 @@
  */
 package com.ioleak.jnetcat.server.tcp.implement;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.Socket;
+import java.io.OutputStream;
 
-import com.ioleak.jnetcat.common.Logging;
 import com.ioleak.jnetcat.server.tcp.TCPClientConnection;
 
 public class Basic
-        implements TCPClientConnection {
+        extends TCPClientConnection {
 
   @Override
-  public void startClient(Socket clientSocket)
-          throws IOException {
-    Logging.getLogger().info("Waiting to receive data [hex display]...");
+  public void initClient(OutputStream out) throws IOException {
+    // we don't want to do anything
+  }
 
-    int maxLength = 15;
-    int currentLength = 0;
-    int data;
+  @Override
+  public void dataRead(String readData) {
+    // we don't want to send anything to client
+  }
 
-    BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-    StringBuilder builder = new StringBuilder("\t");
-
-    while ((data = in.read()) != -1) {
-      if (currentLength >= maxLength) {
-        System.out.print(builder.toString());
-        System.out.println();
-
-        builder.setLength(0);
-        builder.append("\t");
-        currentLength = 0;
-      }
-
-      builder.append((data == 13 || data == 10) ? '.' : (char) data);
-      builder.append(' ');
-
-      System.out.print(String.format("%02X ", data));
-      System.out.flush();
-
-      currentLength++;
-    }
-
-    System.out.println();
+  @Override
+  public void dataSend(OutputStream out) throws IOException {
+    // we don't want to send anything to client
   }
 }

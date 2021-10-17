@@ -25,6 +25,9 @@
  */
 package com.ioleak.jnetcat.common.utils;
 
+import java.util.Arrays;
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -45,11 +48,16 @@ public class StringUtilsTest {
 
   @Test
   public void toHexWithSpaceSeparator_ValidInput_AsExpected() {
-    assertEquals("48 65 6C 6C 6F 20 74 6F 20 79 6F 75 20 21 0A", StringUtils.toHexWithSpaceSeparator("Hello to you !\n"));
-    assertEquals("0A", StringUtils.toHexWithSpaceSeparator("\n"));
-    assertEquals("0A 20 31 31", StringUtils.toHexWithSpaceSeparator("\n 11"));
+    assertEquals("4865 6C6C 6F20 746F 2079 6F75 2021 0A00", StringUtils.toHexWithSpaceSeparator("Hello to you !\n"));
+    assertEquals("0A00", StringUtils.toHexWithSpaceSeparator("\n"));
+    assertEquals("0A20 3131", StringUtils.toHexWithSpaceSeparator("\n 11"));
   }
-
+  
+  @Test
+  public void toHexWithSpaceSeparator_UTF8_TestsBytes() {
+    assertEquals("BAAD 7140 A300", StringUtils.toHexWithSpaceSeparator("º­q@£"));
+  }
+  
   @Test
   public void toStringWithLineSeparator_NullValue_Empty() {
     assertTrue(StringUtils.toStringWithLineSeparator(null).isEmpty());
@@ -102,5 +110,25 @@ public class StringUtilsTest {
     assertTrue(StringUtils.generateRandomString(1).length() == 1);
     assertTrue(StringUtils.generateRandomString(15).length() == 15);
     assertTrue(StringUtils.generateRandomString(128).length() == 128);
+  }
+  
+  @Test
+  public void removeLastCharIfCRLF_CRorLF_AsExpected() {
+    assertEquals("", StringUtils.removeLastCharIfCRLF(null));
+    assertEquals("", StringUtils.removeLastCharIfCRLF(""));
+    assertEquals("  ", StringUtils.removeLastCharIfCRLF("  "));
+    assertEquals("", StringUtils.removeLastCharIfCRLF("\n\r"));
+    assertEquals("ABC \nDE", StringUtils.removeLastCharIfCRLF("ABC \nDE"));
+    assertEquals("ABC \nDE", StringUtils.removeLastCharIfCRLF("ABC \nDE\n"));
+    assertEquals("ABC \nDE", StringUtils.removeLastCharIfCRLF("ABC \nDE\r"));
+    assertEquals("ABC \nDE", StringUtils.removeLastCharIfCRLF("ABC \nDE\r\n")); 
+    assertEquals("ABC \nDE", StringUtils.removeLastCharIfCRLF("ABC \nDE\n\r")); 
+  }
+  
+  @Test
+  public void getStringFromBytes_Values_AsExpected() {
+    List<Byte> tmp = Arrays.asList((byte)35, (byte)59, (byte)52, (byte)38, (byte)45, (byte)-24, (byte)-32, (byte)79, (byte)75);
+    String stringFromBytes = StringUtils.getStringFromBytes(tmp);
+    assertEquals("#;4&-èàOK", stringFromBytes);
   }
 }

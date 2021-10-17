@@ -77,7 +77,7 @@ public class JNetcat {
     String jsonParameters = argumentsParser.switchValue("-f", DEFAULT_CONFIG);
     Logging.getLogger().info(String.format("Using parameter file: %s", jsonParameters));
     URL url = JsonUtils.getRelativePath(jsonParameters, JNetcat.class);
-
+        
     try {
       File jsonFile = new File(url.toURI());
       Logging.getLogger().info(String.format("Parameter file absolute path: %s", jsonFile.getAbsolutePath()));

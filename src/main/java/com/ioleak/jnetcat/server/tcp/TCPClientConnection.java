@@ -26,9 +26,34 @@
 package com.ioleak.jnetcat.server.tcp;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.Socket;
+import java.net.SocketException;
 
-public interface TCPClientConnection {
+import com.ioleak.jnetcat.formatter.StreamFormatOutput;
 
-  public void startClient(Socket clientSocket) throws IOException;
+public abstract class TCPClientConnection {
+
+  private StreamFormatOutput streamFormatOutput;
+  
+  public abstract void initClient(OutputStream out) throws IOException;
+  public abstract void dataRead(String readData);
+  public abstract void dataSend(OutputStream out) throws IOException;
+
+  public final void startClient(Socket clientSocket, StreamFormatOutput streamFormatOutput)
+          throws IOException, SocketException {
+
+    this.streamFormatOutput = streamFormatOutput;
+    initClient(clientSocket.getOutputStream());
+
+    while (!Thread.currentThread().isInterrupted()) {
+      streamFormatOutput.startReading(clientSocket.getInputStream());
+      String readData = streamFormatOutput.getEndOfStreamData();
+
+      if (!readData.isBlank()) {
+        dataRead(readData);
+        dataSend(clientSocket.getOutputStream());
+      }
+    }
+  }
 }

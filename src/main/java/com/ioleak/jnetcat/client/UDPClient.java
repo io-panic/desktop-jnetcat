@@ -26,6 +26,7 @@
 package com.ioleak.jnetcat.client;
 
 import java.beans.PropertyChangeEvent;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -39,6 +40,8 @@ import com.ioleak.jnetcat.common.Logging;
 import com.ioleak.jnetcat.common.interfaces.ProcessAction;
 import com.ioleak.jnetcat.common.properties.ObjectProperty;
 import com.ioleak.jnetcat.common.properties.Observable;
+import com.ioleak.jnetcat.common.utils.StringUtils;
+import com.ioleak.jnetcat.formatter.StreamFormatOutput;
 import com.ioleak.jnetcat.options.startup.ClientParametersUDP;
 
 public class UDPClient
@@ -46,16 +49,18 @@ public class UDPClient
 
   private static final String SOCKET_NOT_INITIALIZATED = "Not correctly initializated: socket is null";
 
-  private Observable keyListener;
-  private boolean interactive;
+  private final boolean interactive;
 
-  private DatagramSocket clientSocket;
   private final String ip;
   private final int port;
   private final int soTimeout;
 
   private final ObjectProperty<Boolean> connectedProperty = new ObjectProperty<>(false);
 
+  private Observable keyListener;
+  private DatagramSocket clientSocket;
+  private StreamFormatOutput streamFormatOutput;
+  
   public UDPClient(ClientParametersUDP clientParametersUDP) {
     this.ip = clientParametersUDP.getIp();
     this.port = clientParametersUDP.getPort();
@@ -71,24 +76,17 @@ public class UDPClient
 
       Logging.getLogger().info(String.format("Openning UDP connection: %s:%d", ip, port));
 
-    } catch (SocketException ex) {
-      Logging.getLogger().error("Socket error", ex);
-    }
-
-    if (interactive) {
-      try {
+      if (interactive) {
         clientSocket.setSoTimeout(0);
         while (!Thread.currentThread().isInterrupted()) {
-          String response = readMessage();
-          System.out.print(response);
-          //System.out.println(StringUtils.toStringWithLineSeparator(StringUtils.toHexWithSpaceSeparator(response)));
+          readMessage();
         }
-      } catch (SocketException ex) {
-        Logging.getLogger().error("Unable to reset soTimeout (indefinite) for interactive mode", ex);
+      } else {
+        sendMessage("1");
+        readMessage();
       }
-    } else {
-      sendMessage("");
-      System.out.println(readMessage());
+    } catch (SocketException ex) {
+      Logging.getLogger().error("A socket error occurred", ex);
     }
   }
 
@@ -99,7 +97,8 @@ public class UDPClient
     try {
       InetAddress address = InetAddress.getByName(ip);
 
-      DatagramPacket request = new DatagramPacket(message.getBytes(), message.getBytes().length, address, port);
+      byte[] messageBytes = StringUtils.getBytesFromString(message);
+      DatagramPacket request = new DatagramPacket(messageBytes, messageBytes.length, address, port);
       clientSocket.send(request);
 
       Logging.getLogger().info(String.format("Sending [to: %s] message: %s", address.getHostAddress(), message.replace("\n", "")));
@@ -112,18 +111,27 @@ public class UDPClient
   }
 
   public String readMessage() {
-    byte[] buffer = new byte[512];
+    String readData = "";
+    byte[] buffer = new byte[2048];
     DatagramPacket response = new DatagramPacket(buffer, buffer.length);
-
     checkClientInitializatedOnRead();
 
     try {
       clientSocket.receive(response);
+
+      byte[] receivedData = new byte[response.getLength()];
+      for (int i = 0; i < response.getLength(); i++) {
+        receivedData[i] = buffer[i];
+      }
+
+      streamFormatOutput.startReading(new ByteArrayInputStream(receivedData));
+      readData = streamFormatOutput.getEndOfStreamData();
+
     } catch (IOException ex) {
       throw new ClientReadMessageException("An error occured", ex);
     }
 
-    return new String(buffer, 0, response.getLength());
+    return readData;
   }
 
   @Override
@@ -141,6 +149,11 @@ public class UDPClient
         }
       });
     }
+  }
+
+  @Override
+  public void setFormatOutput(StreamFormatOutput streamFormatOutput) {
+    this.streamFormatOutput = streamFormatOutput;
   }
 
   @Override

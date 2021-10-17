@@ -33,10 +33,6 @@ import java.io.PrintWriter;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
-import java.net.SocketException;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.List;
 
 import com.ioleak.jnetcat.client.exception.ClientReadMessageException;
 import com.ioleak.jnetcat.client.exception.ClientSendMessageException;
@@ -44,6 +40,9 @@ import com.ioleak.jnetcat.common.Logging;
 import com.ioleak.jnetcat.common.interfaces.ProcessAction;
 import com.ioleak.jnetcat.common.properties.ObjectProperty;
 import com.ioleak.jnetcat.common.properties.Observable;
+import com.ioleak.jnetcat.common.utils.StringUtils;
+import com.ioleak.jnetcat.formatter.StreamFormatOutput;
+import com.ioleak.jnetcat.formatter.exception.StreamNoDataException;
 import com.ioleak.jnetcat.options.startup.ClientParametersTCP;
 
 public class TCPClient
@@ -51,15 +50,17 @@ public class TCPClient
 
   private static final String EXCEPTION_CLIENT_NOT_CONNECTED = "Client is not connected to a server";
 
-  private Observable keyListener;
-  private boolean interactive;
+  private final boolean interactive;
 
-  private Socket clientSocket;
   private final String ip;
   private final int port;
   private final int soTimeout;
 
   private final ObjectProperty<Boolean> connectedProperty = new ObjectProperty<>(false);
+
+  private Socket clientSocket;
+  private Observable keyListener;
+  private StreamFormatOutput streamFormatOutput;
 
   public TCPClient(ClientParametersTCP clientParametersTCP) {
     this.ip = clientParametersTCP.getIp();
@@ -78,8 +79,8 @@ public class TCPClient
 
         clientSocket = new Socket();
         SocketAddress socketAddress = new InetSocketAddress(ip, port);
-        clientSocket.connect(socketAddress, soTimeout);
         clientSocket.setSoTimeout(soTimeout);
+        clientSocket.connect(socketAddress, soTimeout);
 
         Logging.getLogger().info(String.format("TCP connection established on %s:%d", ip, port));
       }
@@ -89,29 +90,28 @@ public class TCPClient
       updateConnectedProperty();
     }
 
-    if (interactive) {
-      try {
-        if (connectedProperty.get()) {
-          clientSocket.setSoTimeout(0);
-        }
-        
-        while (connectedProperty.get() && !Thread.currentThread().isInterrupted()) {
-          String response = readMessage();
-          System.out.print(response);
-          //System.out.println(StringUtils.toStringWithLineSeparator(StringUtils.toHexWithSpaceSeparator(response)));
-        }
-      } catch (SocketException ex) {
-        Logging.getLogger().error("Unable to reset soTimeout (indefinite) for interactive mode", ex);
+    if (interactive && connectedProperty.get()) {
+      Logging.getLogger().info(String.format("Interactive mode enabled [timeout set: %dms]", soTimeout));
+
+      while (connectedProperty.get() && !Thread.currentThread().isInterrupted()) {
+        readMessage();
       }
     }
   }
 
+  @Override
   public void sendMessage(String msg) {
     if (!connectedProperty().get()) {
       throw new ClientSendMessageException(EXCEPTION_CLIENT_NOT_CONNECTED);
     }
 
     try {
+      String msgWithoutCRLF = StringUtils.removeLastCharIfCRLF(msg);
+      Logging.getLogger().info(String.format("Sending [to: %s] message:\n%s\t%s",
+                                             clientSocket.getRemoteSocketAddress(),
+                                             StringUtils.toHexWithSpaceSeparator(msgWithoutCRLF),
+                                             msgWithoutCRLF));
+
       clientSocket.sendUrgentData(1);
 
       PrintWriter printWriter = getOutputStream(clientSocket);
@@ -122,11 +122,8 @@ public class TCPClient
         clientSocket.close();
         throw new ClientSendMessageException(EXCEPTION_CLIENT_NOT_CONNECTED);
       }
-
-      Logging.getLogger().info(String.format("Sending [to: %s] message: %s", clientSocket.getRemoteSocketAddress(), msg.replace("\n", "")));
-
     } catch (IOException ex) {
-      Logging.getLogger().error(String.format("sendMessage error: ", ex.getMessage()));
+      Logging.getLogger().error(String.format("Closing Socket. Unable to send message: %s", ex.getMessage()));
       if (clientSocket != null) {
         try {
           clientSocket.close();
@@ -139,6 +136,7 @@ public class TCPClient
     }
   }
 
+  @Override
   public String readMessage() {
     if (!connectedProperty().get()) {
       throw new ClientReadMessageException(EXCEPTION_CLIENT_NOT_CONNECTED);
@@ -147,39 +145,16 @@ public class TCPClient
     String readData = "";
 
     try {
-      //BufferedReader bufferedReader = getInputStream(clientSocket);
-      //clientSocket.setSoTimeout(10000);
+      streamFormatOutput.startReading(clientSocket.getInputStream());
+      readData = streamFormatOutput.getEndOfStreamData();
 
-      List<Byte> data = new ArrayList<>();
-      byte read;
-
-      do {
-        read = (byte) clientSocket.getInputStream().read();
-        if (read == -1) {
-          clientSocket.close();
-          Logging.getLogger().warn(String.format("Connection closed [%s:%d]", ip, port));
-        } else {
-          data.add(read);
-        }
-
-      } while (read != -1 && read != 10);
-
-      //byte[] read = clientSocket.getInputStream().readAllBytes();
-      byte[] bytes = new byte[data.size()];
-      for (int i = 0; i < data.size(); i++) {
-        bytes[i] = data.get(i);
+    } catch (StreamNoDataException ex) {
+      try {
+        clientSocket.close();
+        Logging.getLogger().warn(String.format("Connection closed [%s:%d]", ip, port));
+      } catch (IOException ex1) {
+        Logging.getLogger().error("Unable to close socket");
       }
-      readData = new String(bytes, Charset.forName("UTF-8"));
-
-      //if (read.length == 0) {
-      //  clientSocket.close();
-      //  Logging.getLogger().warn(String.format("Connection closed [%s:%d]", ip, port));
-      //}
-      //readData = bufferedReader.readLine();
-      //if (readData == null) {
-      //  clientSocket.close();
-      //  throw new ClientReadMessageException(EXCEPTION_CLIENT_NOT_CONNECTED);
-      //}
     } catch (IOException ex) {
       Logging.getLogger().error("Unable to read message from socket", ex);
     } finally {
@@ -207,10 +182,16 @@ public class TCPClient
   }
 
   @Override
+  public void setFormatOutput(StreamFormatOutput streamFormatOutput) {
+    this.streamFormatOutput = streamFormatOutput;
+  }
+
+  @Override
   public boolean isStateSuccessful() {
     return connectedProperty().get();
   }
 
+  @Override
   public ObjectProperty<Boolean> connectedProperty() {
     return connectedProperty;
   }
@@ -221,11 +202,13 @@ public class TCPClient
 
     try {
       if (clientSocket != null) {
-        clientSocket.close();
-        closed = true;
+        if (!clientSocket.isClosed()) {
+          clientSocket.close();
+          closed = true;
+        
+          Logging.getLogger().info(String.format("TCP connection closed on %s:%d", ip, port));
+        }
       }
-
-      Logging.getLogger().info(String.format("TCP connection closed on %s:%d", ip, port));
     } catch (IOException ex) {
       Logging.getLogger().error(String.format("An error occurred while closing connection on %s:%d", ip, port), ex);
     } finally {
@@ -237,7 +220,7 @@ public class TCPClient
 
   @Override
   public boolean stopExecutions() {
-    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    return stopActiveExecution(); // TODO multithread client must close multiple connections...
   }
 
   private PrintWriter getOutputStream(Socket clientSocket) {

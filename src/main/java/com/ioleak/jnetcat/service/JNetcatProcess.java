@@ -51,6 +51,16 @@ public enum JNetcatProcess
   private ExitConsumer<JNetcatProcessResult, JNetcatParameters> exitMethod;
 
   private JNetcatProcess() {
+    Runtime.getRuntime().addShutdownHook(new Thread() {
+      @Override
+      public void run() {
+        Logging.getLogger().warn("Shutdown process requested...");
+        
+        if (processAction != null) {
+          processAction.stopExecutions();
+        }
+      }
+    });
   }
 
   public void setJsonParamsFile(File jsonParamsFile) {

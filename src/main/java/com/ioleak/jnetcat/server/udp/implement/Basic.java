@@ -29,41 +29,18 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 
-import com.ioleak.jnetcat.common.Logging;
-import com.ioleak.jnetcat.common.utils.StringUtils;
 import com.ioleak.jnetcat.server.udp.UDPClientConnection;
 
-public class Basic
-        implements UDPClientConnection {
-
-  public static final int MAX_PACKET_LENGTH = 2048;
+public class Basic 
+        extends UDPClientConnection {
 
   @Override
-  public void startClient(DatagramSocket socket) throws IOException {
-    byte[] buffer = new byte[MAX_PACKET_LENGTH];
-    DatagramPacket request = new DatagramPacket(buffer, buffer.length);
-
-    while (!Thread.currentThread().isInterrupted()) {
-      socket.receive(request);
-
-      String msg = getReceivedString(request);
-
-      Logging.getLogger().info("UDP Received data : ");
-      System.out.println(StringUtils.toHexWithSpaceSeparator(msg));
-
-      for (int i = 0; i < buffer.length; i++) {
-        buffer[i] = 0;
-      }
-      request.setLength(buffer.length);
-    }
-
+  public void dataRead(String readData) {
+    // we don't do anything with the received data
   }
 
-  private String getReceivedString(DatagramPacket request) {
-    byte[] receivedData = request.getData();
-    byte[] trimmedData = new byte[request.getLength()];
-    System.arraycopy(receivedData, 0, trimmedData, 0, trimmedData.length);
-
-    return new String(trimmedData);
+  @Override
+  public void dataSend(DatagramSocket socket, DatagramPacket request) throws IOException {
+    // we don't send any information 
   }
 }

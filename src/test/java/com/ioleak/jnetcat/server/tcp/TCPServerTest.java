@@ -30,6 +30,7 @@ import java.net.Socket;
 
 import com.ioleak.jnetcat.common.Logging;
 import com.ioleak.jnetcat.common.utils.ThreadUtils;
+import com.ioleak.jnetcat.formatter.PrettyHexStringOutput;
 import com.ioleak.jnetcat.options.startup.ServerParametersTCP;
 import com.ioleak.jnetcat.server.generic.ServerState;
 import com.ioleak.jnetcat.server.tcp.exception.TCPServerUnitializatedStartException;
@@ -51,6 +52,8 @@ public class TCPServerTest {
   @BeforeEach
   public void setUp() {
     tcpServer = getTcpServer();
+    tcpServer.setFormatOutput(new PrettyHexStringOutput(null, 20)); // TODO change for a more basic output
+    
     tcpServerThread = new Thread(tcpServer::start);
     tcpServerThread.start();
   }
@@ -117,7 +120,8 @@ public class TCPServerTest {
 
       ThreadUtils.waitForThread(() -> tcpServer.getServerState() != ServerState.WAITING_FOR_CONNECTION);
       tcpServer.stopActiveExecution();
-
+      ThreadUtils.waitForThread(() -> tcpServer.getServerState() != ServerState.CLOSED);
+      
       client.sendUrgentData(1);
       isConnected = client.getInputStream().read() != -1;
       client.close();
@@ -140,7 +144,7 @@ public class TCPServerTest {
 
     try {
       client = new Socket("127.0.0.1", tcpServer.getLocalPort());
-      client.close();
+      //client.close();
     } catch (IOException ex) {
       Logging.getLogger().error("An error occured while opening/closing a client", ex);
     }
@@ -154,7 +158,7 @@ public class TCPServerTest {
     assertEquals(0, tcpServer.getConnectedClientsNumber());
     assertEquals(ServerState.CLOSED, tcpServer.getServerState());
   }
-
+  
   private TCPServer getTcpServer() {
     ServerParametersTCP serverParametersTCP = new ServerParametersTCP.ParametersBuilder(LISTEN_PORT).withServerType(TCPServerType.ECHO).build();
     return new TCPServer(serverParametersTCP);

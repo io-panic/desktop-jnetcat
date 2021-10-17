@@ -23,56 +23,15 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.ioleak.jnetcat.common.properties;
+package com.ioleak.jnetcat.formatter;
 
 import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeSupport;
+import java.io.IOException;
+import java.io.InputStream;
 
-public class ObjectProperty<T>
-        implements Observable {
+public interface StreamFormatOutput {
 
-  public final static String PROPERTYNAME = "object";
-
-  private final PropertyChangeSupport listenerManager = new PropertyChangeSupport(this);
-  private T object;
-  private boolean verifyEquals = false;
-  
-  public ObjectProperty() {
-    this(null);
-  }
-
-  public ObjectProperty(T objectValue) {
-    this.object = objectValue;
-  }
-
-  public void setVerifyEquals(boolean verifyEquals) {
-    this.verifyEquals = verifyEquals;
-  }
-  
-  @Override
-  public void addListener(PropertyChangeListener listener) {
-    listenerManager.addPropertyChangeListener(listener);
-  }
-
-  @Override
-  public void removeListener(PropertyChangeListener listener) {
-    listenerManager.removePropertyChangeListener(listener);
-  }
-
-  public T get() {
-    return object;
-  }
-
-  public void set(T object) {
-    if (!verifyEquals) {
-      if (this.object == object) {
-        this.object = null;
-      }
-    }
-      
-    PropertyChangeEvent event = new PropertyChangeEvent(this, PROPERTYNAME, this.object, object);
-    this.object = object;
-    listenerManager.firePropertyChange(event);
-  }
+  public void startReading(InputStream inputStream) throws IOException;
+  public void formatDataOutput(PropertyChangeEvent evt);
+  public String getEndOfStreamData();
 }

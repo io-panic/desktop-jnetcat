@@ -12,4 +12,8 @@ SET JAVA=%JAVA_HOME%\bin\java.exe
 
 CD /D %~dp0
 
+REM START "" /B /I /WAIT 
+REM -- https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/start
+
 CALL %JAVA% -Dlog4j2.properties=%LOG4J2XML% -jar %JAR% -f %CONFIGFILE% %*
+EXIT /B

@@ -37,6 +37,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class ObjectPropertyTest {
 
   private PropertyChangeEvent event;
+  private int counterEvent = 0;
   private ObjectProperty<String> objectProperty;
 
   @BeforeEach
@@ -44,6 +45,7 @@ public class ObjectPropertyTest {
     objectProperty = new ObjectProperty<>();
     objectProperty.addListener((PropertyChangeEvent propertyChangeEvent) -> {
       this.event = propertyChangeEvent;
+      counterEvent++;
     });
 
     event = null;
@@ -62,11 +64,31 @@ public class ObjectPropertyTest {
   @Test
   public void setObject_ExistingPreviousValue_ValueWithEventFired() {
     objectProperty.set("One Value");
-    objectProperty.set("New Value");
+    objectProperty.set("New Value 112");
 
     assertTrue(event != null);
     assertEquals("One Value", event.getOldValue());
-    assertEquals("New Value", event.getNewValue());
-    assertEquals("New Value", objectProperty.get());
+    assertEquals("New Value 112", event.getNewValue());
+    assertEquals("New Value 112", objectProperty.get());
+  }
+  
+  @Test
+  public void setObject_ChangeValueWithSame_EventFired() {
+    objectProperty.set("A");
+    objectProperty.set("B");
+    objectProperty.set("B");
+
+    assertEquals(3, counterEvent, "Event should be fired event if value is the same");
+  }
+  
+  @Test
+  public void setObject_ChangeValueWithSame_EventNotFired() {
+    objectProperty.setVerifyEquals(true);
+    
+    objectProperty.set("A");
+    objectProperty.set("B");
+    objectProperty.set("B");
+
+    assertEquals(2, counterEvent, "Event should not be fired event if value is the same");
   }
 }

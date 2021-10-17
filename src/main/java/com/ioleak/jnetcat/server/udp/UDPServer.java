@@ -32,6 +32,7 @@ import java.util.List;
 
 import com.ioleak.jnetcat.common.Logging;
 import com.ioleak.jnetcat.common.properties.Observable;
+import com.ioleak.jnetcat.formatter.StreamFormatOutput;
 import com.ioleak.jnetcat.options.startup.ServerParametersUDP;
 import com.ioleak.jnetcat.server.generic.Listener;
 import com.ioleak.jnetcat.server.generic.ServerState;
@@ -41,6 +42,8 @@ public class UDPServer
         extends Listener<UDPServerType, DatagramSocket> {
 
   private Observable keyListener;
+  private StreamFormatOutput streamFormatOutput;
+  
   private DatagramSocket serverSocket;
   private ServerState serverState = ServerState.NOT_STARTED;
 
@@ -64,7 +67,7 @@ public class UDPServer
       while (!(serverSocket.isClosed() || Thread.currentThread().isInterrupted())) {
         serverState = ServerState.WAITING_FOR_CONNECTION;
         try {
-          getServerType().getClient().startClient(serverSocket);
+          getServerType().getClient().startClient(serverSocket, streamFormatOutput);
           serverState = ServerState.CLIENT_CONNECTED;
         } catch (IOException ex) {
           Logging.getLogger().error(String.format("Unable to start a new UDP client (port: %d)", getLocalPort()), ex);
@@ -115,6 +118,11 @@ public class UDPServer
     //  keyListener.addListener((PropertyChangeEvent evt) -> {
     //    System.out.println("key hit!! " + evt.getNewValue());
     //  });
+  }
+  
+  @Override
+  public void setFormatOutput(StreamFormatOutput streamFormatOutput) {
+    this.streamFormatOutput = streamFormatOutput;
   }
 
   @Override

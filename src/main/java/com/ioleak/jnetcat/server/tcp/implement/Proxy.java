@@ -26,15 +26,27 @@
 package com.ioleak.jnetcat.server.tcp.implement;
 
 import java.io.IOException;
-import java.net.Socket;
+import java.io.OutputStream;
 
 import com.ioleak.jnetcat.server.tcp.TCPClientConnection;
 
 public class Proxy
-        implements TCPClientConnection {
+        extends TCPClientConnection {
 
   @Override
-  public void startClient(Socket clientSocket) throws IOException {
+  public void initClient(OutputStream out) throws IOException {
     throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
   }
+
+  @Override
+  public void dataRead(String readData) {
+    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+  }
+
+  @Override
+  public void dataSend(OutputStream out) throws IOException {
+    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+  }
+
+
 }

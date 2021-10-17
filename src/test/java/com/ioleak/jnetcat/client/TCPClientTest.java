@@ -29,6 +29,7 @@ import com.ioleak.jnetcat.client.exception.ClientReadMessageException;
 import com.ioleak.jnetcat.client.exception.ClientSendMessageException;
 import com.ioleak.jnetcat.client.mock.TCPServerMock;
 import com.ioleak.jnetcat.common.Logging;
+import com.ioleak.jnetcat.formatter.PrettyHexStringOutput;
 import com.ioleak.jnetcat.options.startup.ClientParametersTCP;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -54,6 +55,7 @@ public class TCPClientTest {
     
     ClientParametersTCP clientParametersTCP = new ClientParametersTCP.ParametersBuilder("127.0.0.1", tcpServerMock.getPort()).build();
     tcpClient = new TCPClient(clientParametersTCP);
+    tcpClient.setFormatOutput(new PrettyHexStringOutput(null, 20));  // TODO replace with a more BASIC formatter
   }
 
   @AfterEach
@@ -117,7 +119,7 @@ public class TCPClientTest {
   }
 
   @Test
-  public void readMessage_ServerCloseClient_ExceptionThrown() {
+  public void readMessage_ServerCloseClient_EmptyReadMessage() {
     tcpClient.start();
     assertTrue(tcpClient.connectedProperty().get());
 

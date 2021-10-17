@@ -29,6 +29,7 @@ import com.ioleak.jnetcat.client.TCPClient;
 import com.ioleak.jnetcat.client.UDPClient;
 import com.ioleak.jnetcat.common.interfaces.ProcessAction;
 import com.ioleak.jnetcat.common.properties.Observable;
+import com.ioleak.jnetcat.formatter.PrettyHexStringOutput;
 import com.ioleak.jnetcat.options.JNetcatParameters;
 import com.ioleak.jnetcat.server.tcp.TCPServer;
 import com.ioleak.jnetcat.server.udp.UDPServer;
@@ -52,6 +53,9 @@ public class JNetcatProcessFactory {
       }
     }
 
+    // TODO Use params to change the output format
+    //  = new PrettyHexStringOutput(null, 20);  // new SimpleLoggerStringOutput(); // // new PrettyHexStringOutput(20);
+    processAction.setFormatOutput(new PrettyHexStringOutput(null, 20));
     processAction.setKeyListener(keyListener);
 
     return processAction;

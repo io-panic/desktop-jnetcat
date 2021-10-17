@@ -23,56 +23,39 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.ioleak.jnetcat.common.properties;
+package com.ioleak.jnetcat.formatter;
 
 import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeSupport;
+import java.nio.charset.Charset;
 
-public class ObjectProperty<T>
-        implements Observable {
+import com.ioleak.jnetcat.common.Logging;
+import com.ioleak.jnetcat.common.utils.StringUtils;
 
-  public final static String PROPERTYNAME = "object";
+public class SimpleLoggerStringOutput
+        extends StreamRawReaderNoOutput {
 
-  private final PropertyChangeSupport listenerManager = new PropertyChangeSupport(this);
-  private T object;
-  private boolean verifyEquals = false;
-  
-  public ObjectProperty() {
-    this(null);
-  }
-
-  public ObjectProperty(T objectValue) {
-    this.object = objectValue;
-  }
-
-  public void setVerifyEquals(boolean verifyEquals) {
-    this.verifyEquals = verifyEquals;
-  }
-  
-  @Override
-  public void addListener(PropertyChangeListener listener) {
-    listenerManager.addPropertyChangeListener(listener);
-  }
+  private final StringBuilder currentData = new StringBuilder();
 
   @Override
-  public void removeListener(PropertyChangeListener listener) {
-    listenerManager.removePropertyChangeListener(listener);
-  }
+  public void formatDataOutput(PropertyChangeEvent evt) {
+    super.formatDataOutput(evt);
 
-  public T get() {
-    return object;
-  }
-
-  public void set(T object) {
-    if (!verifyEquals) {
-      if (this.object == object) {
-        this.object = null;
-      }
+    if (evt.getNewValue() != null) {
+      currentData.append(new String(new byte[] {(byte) evt.getNewValue()}, Charset.forName("UTF-8")));
     }
-      
-    PropertyChangeEvent event = new PropertyChangeEvent(this, PROPERTYNAME, this.object, object);
-    this.object = object;
-    listenerManager.firePropertyChange(event);
+  }
+
+  @Override
+  public String getEndOfStreamData() {
+    String allReadData = currentData.toString();
+    if (allReadData.length() > 0) {
+      String removeLastCRLF = StringUtils.removeLastCharIfCRLF(allReadData);
+      Logging.getLogger().info(String.format("Server data:\n%s", removeLastCRLF));
+    }
+
+    currentData.setLength(0);
+    super.getEndOfStreamData();
+
+    return allReadData;
   }
 }
