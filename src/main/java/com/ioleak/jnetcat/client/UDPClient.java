@@ -110,6 +110,7 @@ public class UDPClient
     }
   }
 
+  @Override
   public String readMessage() {
     String readData = "";
     byte[] buffer = new byte[2048];
@@ -128,6 +129,7 @@ public class UDPClient
       readData = streamFormatOutput.getEndOfStreamData();
 
     } catch (IOException ex) {
+      clientSocket.close();
       throw new ClientReadMessageException("An error occured", ex);
     }
 
@@ -142,8 +144,9 @@ public class UDPClient
       StringBuilder builder = new StringBuilder();
 
       keyListener.addListener((PropertyChangeEvent evt) -> {
-        builder.append(evt.getNewValue());
-        if (evt.getNewValue().equals('\n')) {
+        String receivedChar = new String(new byte[] {(byte)evt.getNewValue()}, StringUtils.DEFAULT_ENCODING_NETWORK);
+        builder.append(receivedChar);
+        if (receivedChar.equals("\n")) {
           sendMessage(builder.toString());
           builder.setLength(0);
         }

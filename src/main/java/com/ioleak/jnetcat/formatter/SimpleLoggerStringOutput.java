@@ -26,7 +26,6 @@
 package com.ioleak.jnetcat.formatter;
 
 import java.beans.PropertyChangeEvent;
-import java.nio.charset.Charset;
 
 import com.ioleak.jnetcat.common.Logging;
 import com.ioleak.jnetcat.common.utils.StringUtils;
@@ -41,7 +40,7 @@ public class SimpleLoggerStringOutput
     super.formatDataOutput(evt);
 
     if (evt.getNewValue() != null) {
-      currentData.append(new String(new byte[] {(byte) evt.getNewValue()}, Charset.forName("UTF-8")));
+      currentData.append(new String(new byte[] {(byte) evt.getNewValue()}, StringUtils.DEFAULT_ENCODING_NETWORK));
     }
   }
 

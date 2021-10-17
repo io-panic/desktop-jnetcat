@@ -39,16 +39,15 @@ public class KeyCharReader
         implements Observable {
 
   private final PropertyChangeSupport listenerManager = new PropertyChangeSupport(this);
-  
-  private static final List<Character> supportedCommands = Arrays.asList('k', 'q', 's');
-  private static final Character COMMAND_STARTS_WITH_FIRST = ':';
-  private static final Character COMMAND_STARTS_WITH_SECOND = '!';
+
+  private static final List<String> supportedCommands = Arrays.asList("k", "q", "s");
+  private static final String COMMAND_STARTS_WITH_FIRST = ":";
+  private static final String COMMAND_STARTS_WITH_SECOND = "!";
   private static final String COMMAND_STARTS_WITH_FULL = String.format("%s%s", COMMAND_STARTS_WITH_FIRST, COMMAND_STARTS_WITH_SECOND);
-  
+
   private static final String THREAD_FORMAT_NAME = "Thread-%s";
   private static final int WAIT_DELAY_NEXT_CHAR_MS = 100;
 
-  
   private Supplier<Boolean> actionOnKeyS;
   private Supplier<Boolean> actionOnKeyQ;
 
@@ -102,10 +101,10 @@ public class KeyCharReader
 
     try {
       while (charValid) {
-        char key = (char) System.in.read();
+        byte key = (byte) System.in.read();
         charValid = (key != 65535 && key != -1);
 
-        buildCommandString(command, key);
+        buildCommandString(command, new String(new byte[] {key}));
         if (command.length() == 3) {
           executeCommand(command.toString());
           clearCommandIfComplete(command);
@@ -123,13 +122,13 @@ public class KeyCharReader
     return charValid;
   }
 
-  private void buildCommandString(StringBuilder command, char key) {
-    if (key == COMMAND_STARTS_WITH_FIRST) {
+  private void buildCommandString(StringBuilder command, String key) {
+    if (key.equals(COMMAND_STARTS_WITH_FIRST)) {
       command.append(key);
     }
 
-    if (key == COMMAND_STARTS_WITH_SECOND) {
-      if (command.toString().equals(COMMAND_STARTS_WITH_FIRST.toString())) {
+    if (key.equals(COMMAND_STARTS_WITH_SECOND)) {
+      if (command.toString().equals(COMMAND_STARTS_WITH_FIRST)) {
         command.append(key);
       } else {
         command.setLength(0);

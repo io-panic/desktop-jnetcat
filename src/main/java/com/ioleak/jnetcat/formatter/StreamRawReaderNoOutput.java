@@ -29,21 +29,22 @@ import java.beans.PropertyChangeEvent;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.SocketTimeoutException;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.IntStream;
 
 import com.ioleak.jnetcat.common.Logging;
 import com.ioleak.jnetcat.common.properties.ObjectProperty;
+import com.ioleak.jnetcat.common.utils.StringUtils;
 import com.ioleak.jnetcat.formatter.exception.StreamNoDataException;
 
 public abstract class StreamRawReaderNoOutput
         implements StreamFormatOutput {
 
   private final ObjectProperty<Byte> dataReceived = new ObjectProperty<>();
+  private final List<Byte> bufferDataReceived = new ArrayList<>();
+
   private StreamFormatOutput prettyFormatOutput = null;
-  private List<Byte> bufferDataReceived = new ArrayList<>();
 
   public StreamRawReaderNoOutput() {
     this(null);
@@ -63,7 +64,7 @@ public abstract class StreamRawReaderNoOutput
 
   @Override
   public String getEndOfStreamData() {
-    return buildStringFromBytes(bufferDataReceived);
+    return StringUtils.getStringFromBytes(bufferDataReceived);
   }
 
   @Override
@@ -114,14 +115,5 @@ public abstract class StreamRawReaderNoOutput
   private void readByte(byte oneByte) {
     bufferDataReceived.add(oneByte);
     dataReceived.set(oneByte);
-  }
-
-  protected String buildStringFromBytes(List<Byte> data) {
-    byte[] bytes = new byte[data.size()];
-    for (int i = 0; i < data.size(); i++) {
-      bytes[i] = data.get(i);
-    }
-
-    return new String(bytes, Charset.forName("ISO-8859-1"));
   }
 }

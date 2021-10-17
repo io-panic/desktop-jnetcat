@@ -148,15 +148,13 @@ public class TCPClient
       streamFormatOutput.startReading(clientSocket.getInputStream());
       readData = streamFormatOutput.getEndOfStreamData();
 
-    } catch (StreamNoDataException ex) {
+    } catch (StreamNoDataException | IOException ex) {
       try {
         clientSocket.close();
         Logging.getLogger().warn(String.format("Connection closed [%s:%d]", ip, port));
       } catch (IOException ex1) {
         Logging.getLogger().error("Unable to close socket");
       }
-    } catch (IOException ex) {
-      Logging.getLogger().error("Unable to read message from socket", ex);
     } finally {
       updateConnectedProperty();
     }
@@ -172,8 +170,9 @@ public class TCPClient
       StringBuilder builder = new StringBuilder();
 
       keyListener.addListener((PropertyChangeEvent evt) -> {
-        builder.append(evt.getNewValue());
-        if (evt.getNewValue().equals('\n')) {
+        String receivedChar = new String(new byte[] {(byte)evt.getNewValue()}, StringUtils.DEFAULT_ENCODING_NETWORK);
+        builder.append(receivedChar);
+        if (receivedChar.equals("\n")) {
           sendMessage(builder.toString());
           builder.setLength(0);
         }

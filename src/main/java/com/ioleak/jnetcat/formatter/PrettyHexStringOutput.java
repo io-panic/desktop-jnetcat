@@ -96,7 +96,7 @@ public class PrettyHexStringOutput
     }
     
     if (bufferData.size() > 0) {
-      line = buildStringFromBytes(bufferData);
+      line = StringUtils.getStringFromBytes(bufferData);
       System.out.println("\t" + replaceReturnEndOfLine(line));
 
       bufferData.clear();

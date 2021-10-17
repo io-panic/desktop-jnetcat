@@ -29,6 +29,7 @@ import java.beans.PropertyChangeEvent;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
+import com.ioleak.jnetcat.common.utils.StringUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -57,7 +58,7 @@ public class KeyCharReaderTest {
 
     keyCharReader.addListener((PropertyChangeEvent propertyChangeEvent) -> {
       this.event = propertyChangeEvent;
-      stringEventReceived.append(propertyChangeEvent.getNewValue());
+      stringEventReceived.append(new String(new byte[] { (byte)propertyChangeEvent.getNewValue() }, StringUtils.DEFAULT_ENCODING_NETWORK));
     });
 
     event = null;
