@@ -25,57 +25,21 @@
  */
 package com.ioleak.jnetcat.server.udp.implement;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Queue;
-import java.util.Random;
 
-import com.ioleak.jnetcat.common.Logging;
-import com.ioleak.jnetcat.common.exception.FileNotFoundException;
-import com.ioleak.jnetcat.common.utils.JsonUtils;
+import com.ioleak.jnetcat.common.ProcessExecutor;
 import com.ioleak.jnetcat.common.utils.StringUtils;
 import com.ioleak.jnetcat.server.udp.UDPClientConnection;
 
-public class Quote
+public class Shell
         extends UDPClientConnection {
 
-  public static final int MAX_PACKET_LENGTH = 1;
-  public static final String DEFAULT_QUOTES_TXT = "conf/quotes.txt";
-  private final List<String> quotes = new ArrayList<>();
   private final Queue<String> commands = new LinkedList<>();
-
-  public Quote() {
-    loadQuote(DEFAULT_QUOTES_TXT);
-  }
-
-  private void loadQuote(String relativePath) {
-    URL url = JsonUtils.getAbsolutePathTo(relativePath);
-
-    try {
-      File jsonFile = new File(url.toURI());
-      if (!jsonFile.exists()) {
-        throw new FileNotFoundException(String.format("File don't exists: %s", url.toString()));
-      }
-
-      String rawQuotes = Files.readString(jsonFile.toPath());
-      quotes.addAll(Arrays.asList(rawQuotes.split("\n")));
-
-    } catch (URISyntaxException ex) {
-      Logging.getLogger().error("Unable to load QUOTE file: syntax error", ex);
-    } catch (IOException ex) {
-      Logging.getLogger().error("Unable to load QUOTE file: exception on read", ex);
-    }
-  }
 
   @Override
   public void dataRead(String readData) {
@@ -84,17 +48,11 @@ public class Quote
 
   @Override
   public void dataSend(DatagramSocket datagramSocket, DatagramPacket request) throws IOException {
-    String response = "Unknown command sent. Please retry";
     String lastCommand = commands.poll();
-
-    if (lastCommand != null && lastCommand.equals("1")) {
-      int selectedQuoteIndex = new Random().nextInt(quotes.size());
-      response = quotes.get(selectedQuoteIndex);
-    }
 
     InetAddress clientAddress = request.getAddress();
     int clientPort = request.getPort();
-    byte[] data = StringUtils.getBytesFromString(response);
+    byte[] data = StringUtils.getBytesFromString(new ProcessExecutor().execute().toString());
 
     // Logging.getLogger().info(String.format("Response sent to %s:%d", clientAddress.getHostAddress(), clientPort));
     datagramSocket.send(new DatagramPacket(data, data.length, clientAddress, clientPort));

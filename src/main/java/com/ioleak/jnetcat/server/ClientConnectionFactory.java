@@ -32,6 +32,7 @@ import com.ioleak.jnetcat.server.tcp.implement.Proxy;
 import com.ioleak.jnetcat.server.udp.UDPClientConnection;
 import com.ioleak.jnetcat.server.udp.UDPServerType;
 import com.ioleak.jnetcat.server.udp.implement.Quote;
+import com.ioleak.jnetcat.server.udp.implement.Shell;
 
 public class ClientConnectionFactory {
 
@@ -62,6 +63,9 @@ public class ClientConnectionFactory {
         break;
       case QUOTE:
         server = new Quote();
+        break;
+      case SHELL:
+        server = new Shell();
         break;
     }
 

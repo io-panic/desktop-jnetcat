@@ -23,43 +23,19 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.ioleak.jnetcat.server.udp;
+package com.ioleak.jnetcat.common;
 
-import com.ioleak.jnetcat.common.BaseEnum;
-import com.ioleak.jnetcat.server.ClientConnectionFactory;
 
-public enum UDPServerType
-        implements BaseEnum {
+import com.ioleak.jnetcat.common.ProcessExecutor.ProcessResult;
+import org.junit.jupiter.api.Test;
 
-  UNKNOWN(0, "Unknown server type defined"),
-  BASIC(1, "Listen only server"),
-  QUOTE(2, "QUOTE server"),
-  SHELL(3, "SHELL server");
+public class ProcessExecutorTest {
 
-  private int code;
-  private String msg;
-
-  UDPServerType(int code, String msg) {
-    this.code = code;
-    this.msg = msg;
-  }
-
-  @Override
-  public int getCode() {
-    return code;
-  }
-
-  @Override
-  public String getDetails(Object... args) {
-    return msg;
-  }
-
-  public UDPClientConnection getClient() {
-    return ClientConnectionFactory.createClientConnectionUDP(this);
-  }
-
-  @Override
-  public String toString() {
-    return String.format("%d [%s]", getCode(), getDetails());
+  @Test
+  public void testSomeMethod() {
+    ProcessExecutor processExecutor = new ProcessExecutor();
+    ProcessResult processResult = processExecutor.execute();
+    
+    System.out.println(processResult);
   }
 }

@@ -28,6 +28,7 @@ package com.ioleak.jnetcat;
 import java.io.File;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.Paths;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -47,7 +48,7 @@ import com.ioleak.jnetcat.service.JNetcatProcessResult;
 public class JNetcat {
 
   public static final String DESCRIPTION = "A useful network tool to debug for client/server";
-  public static final String DEFAULT_CONFIG = "external/conf/options.json";
+  public static final String DEFAULT_CONFIG = Paths.get("external", "conf", "options.json").toString();
 
   private static Thread jnetcatThread;
   private static JNetcatProcess jnetcatRun;
