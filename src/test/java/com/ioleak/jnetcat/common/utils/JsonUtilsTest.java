@@ -26,19 +26,27 @@
 package com.ioleak.jnetcat.common.utils;
 
 import java.io.File;
+import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.util.LinkedHashMap;
 
+import com.ioleak.jnetcat.common.Logging;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.junit.jupiter.api.TestMethodOrder;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @TestMethodOrder(OrderAnnotation.class)
+@TestInstance(Lifecycle.PER_CLASS)
 public class JsonUtilsTest {
+
+  private static final String JSON_FILENAME_TEST = "test/test.json";
 
   private static final String JSON_DATA = "{\r\n"
                                           + "  \"firstName\" : \"XXXX\",\r\n"
@@ -46,6 +54,17 @@ public class JsonUtilsTest {
                                           + "  \"age\" : 35,\r\n"
                                           + "  \"money\" : 5.95\r\n"
                                           + "}";
+
+  private File jsonTestFile;
+
+  @BeforeAll
+  public void initClass() {
+    try {
+      jsonTestFile = new File(JsonUtils.getAbsolutePathTo(JSON_FILENAME_TEST).toURI());
+    } catch (URISyntaxException ex) {
+      Logging.getLogger().error("Error on URI of temporary file");
+    }
+  }
 
   @Test
   public void objectToJson_ValidObject_JsonString() {
@@ -81,15 +100,16 @@ public class JsonUtilsTest {
   @Test
   @Order(1)
   public void saveJsonToFile_PathToFileWithData_FileExists() {
-    Path fileSavedPath = JsonUtils.saveJsonToFile("test/test.json", JSON_DATA);
+    Path fileSavedPath = JsonUtils.saveJsonToFile(JSON_FILENAME_TEST, JSON_DATA);
     assertTrue(fileSavedPath != null && new File(fileSavedPath.toUri()).exists());
   }
 
   @Test
   @Order(2)
   public void loadJsonFileToString_PathToFile_StringResult() {
-    String json = JsonUtils.loadJsonFileToString("test/test.json");
+    String json = JsonUtils.loadJsonFileToString(JSON_FILENAME_TEST);
     assertEquals(JSON_DATA, json);
+    assertTrue(jsonTestFile.delete(), "Unable to delete temporary file");
   }
 
   private static class JsonObjectTest {

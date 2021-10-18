@@ -40,7 +40,6 @@ import java.util.List;
 import java.util.Queue;
 import java.util.Random;
 
-import com.ioleak.jnetcat.JNetcat;
 import com.ioleak.jnetcat.common.Logging;
 import com.ioleak.jnetcat.common.exception.FileNotFoundException;
 import com.ioleak.jnetcat.common.utils.JsonUtils;
@@ -60,7 +59,7 @@ public class Quote
   }
 
   private void loadQuote(String relativePath) {
-    URL url = JsonUtils.getRelativePath(relativePath, JNetcat.class);
+    URL url = JsonUtils.getAbsolutePathTo(relativePath);
 
     try {
       File jsonFile = new File(url.toURI());

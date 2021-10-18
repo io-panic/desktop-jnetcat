@@ -47,7 +47,7 @@ import com.ioleak.jnetcat.service.JNetcatProcessResult;
 public class JNetcat {
 
   public static final String DESCRIPTION = "A useful network tool to debug for client/server";
-  public static final String DEFAULT_CONFIG = "external/conf/AllOptionsInOne.json";
+  public static final String DEFAULT_CONFIG = "external/conf/options.json";
 
   private static Thread jnetcatThread;
   private static JNetcatProcess jnetcatRun;
@@ -76,12 +76,16 @@ public class JNetcat {
 
     String jsonParameters = argumentsParser.switchValue("-f", DEFAULT_CONFIG);
     Logging.getLogger().info(String.format("Using parameter file: %s", jsonParameters));
-    URL url = JsonUtils.getRelativePath(jsonParameters, JNetcat.class);
+    URL url = JsonUtils.getAbsolutePathTo(jsonParameters);
         
     try {
       File jsonFile = new File(url.toURI());
       Logging.getLogger().info(String.format("Parameter file absolute path: %s", jsonFile.getAbsolutePath()));
 
+      if (!jsonFile.exists()) {
+        throw new IllegalArgumentException("Path of the parameter file is not valid");
+      }
+      
       initJNetcatProcessRun(jsonFile, argumentsParser);
 
       startThreadFileWatcher(jsonFile, 2500);

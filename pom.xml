@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.ioleak</groupId>
   <artifactId>jnetcat</artifactId>
-  <version>1.0.0-RC3</version>
+  <version>1.0.0-RC4</version>
   <packaging>jar</packaging>
     
   <properties>
@@ -78,7 +78,7 @@
             <manifest>
               <mainClass>com.ioleak.jnetcat.JNetcat</mainClass>
               <addClasspath>true</addClasspath>
-              <classpathPrefix>lib/</classpathPrefix>
+              <classpathPrefix>../ext/</classpathPrefix>
             </manifest>
             <manifestEntries>
               <Implementation-Version>${project.version}</Implementation-Version>
@@ -87,7 +87,7 @@
           <excludes>
             <exclude>external/**</exclude>
           </excludes>
-          <outputDirectory>${project.build.directory}/${target.output.dir}</outputDirectory>
+          <outputDirectory>${project.build.directory}/${target.output.dir}/lib</outputDirectory>
         </configuration>
       </plugin>
       <plugin>
@@ -104,7 +104,7 @@
             <configuration>
               <includeScope>runtime</includeScope>
               <outputDirectory>
-                ${project.build.directory}/${target.output.dir}/lib
+                ${project.build.directory}/${target.output.dir}/ext
               </outputDirectory>
             </configuration>
           </execution>
@@ -159,7 +159,7 @@
                   <directory>src/main/resources/external</directory>
                   <filtering>false</filtering>
                   <includes>
-                    <include>jnetcat.bat</include>
+                    <include>*.bat</include>
                   </includes>
                 </resource>
               </resources>

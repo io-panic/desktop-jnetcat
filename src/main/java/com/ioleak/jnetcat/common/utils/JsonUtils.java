@@ -33,7 +33,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
@@ -95,8 +94,7 @@ public class JsonUtils {
   public static String loadJsonFileToString(String relativePathToFile) {
     String jsonContent = JSON_EMPTY;
 
-    Class clazz = JsonUtils.class;
-    URL pathToFile = getRelativePath(relativePathToFile, clazz);
+    URL pathToFile = getAbsolutePathTo(relativePathToFile);
 
     try {
       jsonContent = loadJsonFileToString(new File(pathToFile.toURI()));
@@ -132,7 +130,7 @@ public class JsonUtils {
     Path fileSavedPath = null;
 
     try {
-      URL pathToFile = getRelativePath(relativePathToFile, JsonUtils.class);
+      URL pathToFile = getAbsolutePathTo(relativePathToFile);
       createDirectories(pathToFile);
 
       fileSavedPath = Paths.get(pathToFile.toURI());
@@ -145,21 +143,19 @@ public class JsonUtils {
     return fileSavedPath;
   }
 
-  public static URL getRelativePath(String relativePathToFile, Class clazz) {
+  public static URL getAbsolutePathTo(String relativeFilePath) {
     ClassLoader classloader = Thread.currentThread().getContextClassLoader();
 
-    URL url = classloader.getResource(relativePathToFile);
+    URL url = classloader.getResource(relativeFilePath);
 
     if (url == null) {
-      url = clazz.getProtectionDomain().getCodeSource().getLocation();
+      Path currentDir = Paths.get("").toAbsolutePath();
+      Path configFile = Paths.get(currentDir.toString(), relativeFilePath);
 
       try {
-        URI parent = url.toURI().getPath().endsWith("/") ? url.toURI().resolve("..") : url.toURI().resolve(".");
-        URI newUri = parent.resolve(parent.getPath() + relativePathToFile);
-
-        url = newUri.toURL();
-      } catch (MalformedURLException | URISyntaxException ex) {
-        Logging.getLogger().error(String.format("Unable to get a valid path to the file %s", relativePathToFile));
+        url = configFile.toUri().toURL();
+      } catch (MalformedURLException ex) {
+        Logging.getLogger().error(String.format("Unable to get a valid path to the file %s", relativeFilePath));
       }
     }
 
