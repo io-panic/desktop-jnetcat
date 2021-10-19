@@ -11,6 +11,7 @@ A tool to easily debug or monitor traffic on TCP/UDP and fake a server or a clie
   * No installation required, unzip the package and start the batch file
   * Use configuration file
     + with some parameters that can be easily overriden on commandline
+    + automatic reload configuration file when file is modified
     + use default custom protocol
   
 Debug your application network issues :
