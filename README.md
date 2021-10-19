@@ -34,9 +34,9 @@ conf/options.json
   * **PRETTY_HEX**: Display all data using hexadecimal values  
 
 *"serverType"* support one of these values (TCP): 
-  * **BASIC**:  Listen only server"),
-  * **ECHO**:   Echo requests on the server"),
-  * **PROXY**:  Forward requests to another server");
+  * **BASIC**:  Listen only server
+  * **ECHO**:   Echo requests on the server
+  * **PROXY**:  Forward requests to another server
   
 *"serverType"* support one of these values (UDP):  
   * **BASIC**:  Listen only server  
