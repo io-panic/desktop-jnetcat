@@ -70,4 +70,5 @@ jnc-server => start as a server (using options.json for other parameters)
 * Fix SHELL UDP to return values when packet is bigger
 * Implement multithreading
 * Format output to match send and receive (actually: only receive)
+* Split integration tests and unit tests 
 
