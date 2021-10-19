@@ -30,28 +30,25 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 
-import com.ioleak.jnetcat.formatter.StreamFormatOutput;
-
-import static com.ioleak.jnetcat.server.udp.implement.Quote.MAX_PACKET_LENGTH;
+import com.ioleak.jnetcat.formatter.helpers.StreamFormatOutput;
 
 public abstract class UDPClientConnection {
-
-  private StreamFormatOutput streamFormatOutput;
 
   public abstract void dataRead(String readData);
 
   public abstract void dataSend(DatagramSocket socket, DatagramPacket request) throws IOException;
 
+  public abstract int getMaxPacketLength();
+
   public final void startClient(DatagramSocket clientSocket, StreamFormatOutput streamFormatOutput)
           throws IOException {
-    byte[] buffer = new byte[MAX_PACKET_LENGTH];
-    DatagramPacket receivedPacket = new DatagramPacket(buffer, buffer.length);
 
-    this.streamFormatOutput = streamFormatOutput;
+    byte[] buffer = new byte[getMaxPacketLength()];
+    DatagramPacket receivedPacket = new DatagramPacket(buffer, buffer.length);
 
     while (!Thread.currentThread().isInterrupted()) {
       clientSocket.receive(receivedPacket);
-      streamFormatOutput.startReading(new ByteArrayInputStream(buffer));
+      streamFormatOutput.startReading(new ByteArrayInputStream(buffer, 0, receivedPacket.getLength()));
       String readData = streamFormatOutput.getEndOfStreamData();
 
       if (!readData.isBlank()) {

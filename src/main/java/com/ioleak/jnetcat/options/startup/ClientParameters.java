@@ -35,7 +35,7 @@ public abstract class ClientParameters
 
   private final String ip;
   private final Integer port;
-
+  
   private final int nbClientMax;
   private final int nbExecution;
   private final int sleepBetweenExecMs;

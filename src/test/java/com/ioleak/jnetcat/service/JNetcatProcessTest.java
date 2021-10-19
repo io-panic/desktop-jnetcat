@@ -32,6 +32,7 @@ import com.ioleak.jnetcat.client.exception.ClientSendMessageException;
 import com.ioleak.jnetcat.common.Logging;
 import com.ioleak.jnetcat.common.utils.ThreadUtils;
 import com.ioleak.jnetcat.options.JNetcatParameters;
+import com.ioleak.jnetcat.options.OutputFormatConfig;
 import com.ioleak.jnetcat.options.startup.ClientParametersTCP;
 import com.ioleak.jnetcat.options.startup.ServerParametersTCP;
 import com.ioleak.jnetcat.server.tcp.TCPServerType;
@@ -90,7 +91,7 @@ public class JNetcatProcessTest {
   @Test
   @Order(1)
   public void run_ThreadOrder1_ExecutionInProgressCode() {
-    JNetcatParameters jNetcatParameters = new JNetcatParameters.ParametersBuilder(true, true)
+    JNetcatParameters jNetcatParameters = new JNetcatParameters.ParametersBuilder(true, true, new OutputFormatConfig())
             .withServerParametersTCP(new ServerParametersTCP.ParametersBuilder(LISTEN_PORT).withServerType(TCPServerType.ECHO).build()).build();
 
     jNetcatThread = new Thread() {
@@ -109,7 +110,7 @@ public class JNetcatProcessTest {
   @Test
   @Order(2)
   public void run_ThreadOrder2_AlreadyRunningCode() {
-    JNetcatParameters jNetcatParameters = new JNetcatParameters.ParametersBuilder(true, true)
+    JNetcatParameters jNetcatParameters = new JNetcatParameters.ParametersBuilder(true, true, new OutputFormatConfig())
             .withServerParametersTCP(new ServerParametersTCP.ParametersBuilder(8080).build()).build();
 
     assertThrows(JNetcatProcessRunningException.class, () -> jNetcatProcess.run(jNetcatParameters));

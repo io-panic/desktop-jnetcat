@@ -23,21 +23,29 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.ioleak.jnetcat.common;
+package com.ioleak.jnetcat.formatter.helpers;
 
+import com.ioleak.jnetcat.formatter.PrettyHexStringOutput;
+import com.ioleak.jnetcat.formatter.SilentModeFormatOutput;
+import com.ioleak.jnetcat.formatter.SimpleLoggerStringOutput;
 
-import com.ioleak.jnetcat.common.ProcessExecutor.ProcessResult;
-import org.junit.jupiter.api.Test;
+public class FormatOutputFactory {
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+  public static StreamFormatOutput createFormatOutput(FormatOutputType formatOutputType, int lineWidth) {
+    StreamFormatOutput streamFormatOutput = null;
 
-public class ProcessExecutorTest {
+    switch (FormatOutputType.valueOf(formatOutputType.name())) {
+      case NO_OUTPUT:
+        streamFormatOutput = new SilentModeFormatOutput();
+        break;
+      case SIMPLE:
+        streamFormatOutput = new SimpleLoggerStringOutput(lineWidth);
+        break;
+      case PRETTY_HEX:
+        streamFormatOutput = new PrettyHexStringOutput(null, lineWidth);
+        break;
+    }
 
-  @Test
-  public void execute_SimpleCommand_VerifyResult() {
-    ProcessExecutor processExecutor = new ProcessExecutor();
-    ProcessResult processResult = processExecutor.execute("cmd.exe /c echo 'bleh'");
-    
-    assertEquals("'bleh'" + System.lineSeparator(), processResult.getStdIn());
+    return streamFormatOutput;
   }
 }

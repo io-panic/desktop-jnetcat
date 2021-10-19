@@ -33,7 +33,7 @@ import java.util.List;
 
 import com.ioleak.jnetcat.common.Logging;
 import com.ioleak.jnetcat.common.properties.Observable;
-import com.ioleak.jnetcat.formatter.StreamFormatOutput;
+import com.ioleak.jnetcat.formatter.helpers.StreamFormatOutput;
 import com.ioleak.jnetcat.formatter.exception.StreamNoDataException;
 import com.ioleak.jnetcat.options.startup.ServerParametersTCP;
 import com.ioleak.jnetcat.server.generic.Listener;

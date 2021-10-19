@@ -1,7 +1,10 @@
 {
   "startAsServer": true,
   "useProtocolTCP": true,
-  "daemon": false,
+  "outputFormatConfig": {
+    "formatOutputType": "PRETTY_HEX",
+    "lineWidth": 25
+  },
   "clientParametersTCP": {
     "ip": "127.0.0.1",
     "port": 10080,
@@ -20,15 +23,17 @@
     "sleepBetweenExecMs": 1000
   },
   "serverParametersTCP": {
+    "daemon": true,
     "multiThread": false,
     "ip": "0.0.0.0",
     "port": 10080,
     "serverType": "ECHO"
   },
   "serverParametersUDP": {
+    "daemon": true,
     "multiThread": false,
     "ip": "0.0.0.0",
     "port": 10080,
-    "serverType": "QUOTE"
+    "serverType": "SHELL"
   }
 }

@@ -23,21 +23,16 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.ioleak.jnetcat.common;
+package com.ioleak.jnetcat.formatter.helpers;
 
+import java.beans.PropertyChangeEvent;
+import java.io.IOException;
+import java.io.InputStream;
 
-import com.ioleak.jnetcat.common.ProcessExecutor.ProcessResult;
-import org.junit.jupiter.api.Test;
+public interface StreamFormatOutput {
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
-public class ProcessExecutorTest {
-
-  @Test
-  public void execute_SimpleCommand_VerifyResult() {
-    ProcessExecutor processExecutor = new ProcessExecutor();
-    ProcessResult processResult = processExecutor.execute("cmd.exe /c echo 'bleh'");
-    
-    assertEquals("'bleh'" + System.lineSeparator(), processResult.getStdIn());
-  }
+  public void startReading(InputStream inputStream) throws IOException;
+  public void formatDataOutput(PropertyChangeEvent evt);
+  public String getEndOfStreamData();
+  public int getLineWidth();
 }

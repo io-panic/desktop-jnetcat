@@ -23,7 +23,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.ioleak.jnetcat.formatter;
+package com.ioleak.jnetcat.formatter.helpers;
 
 import java.beans.PropertyChangeEvent;
 import java.io.IOException;
@@ -43,15 +43,21 @@ public abstract class StreamRawReaderNoOutput
 
   private final ObjectProperty<Byte> dataReceived = new ObjectProperty<>();
   private final List<Byte> bufferDataReceived = new ArrayList<>();
-
+  private final int lineWidth;
+  
   private StreamFormatOutput prettyFormatOutput = null;
 
   public StreamRawReaderNoOutput() {
-    this(null);
+    this(-1);
   }
-
-  public StreamRawReaderNoOutput(StreamFormatOutput prettyFormatOutput) {
+  
+  public StreamRawReaderNoOutput(int lineWidth) {
+    this(null, lineWidth);
+  }
+  
+  public StreamRawReaderNoOutput(StreamFormatOutput prettyFormatOutput, int lineWidth) {
     this.prettyFormatOutput = prettyFormatOutput;
+    this.lineWidth = lineWidth;
     dataReceived.addListener(this::formatDataOutput);
   }
 
@@ -76,7 +82,7 @@ public abstract class StreamRawReaderNoOutput
 
     do {
       try {
-        byte[] inputData = new byte[1024];
+        byte[] inputData = new byte[2048];
         readByte(blockOnReadDetectConnectionLost(inputStream));
 
         result = inputStream.read(inputData, 0, inputStream.available());
@@ -102,6 +108,11 @@ public abstract class StreamRawReaderNoOutput
     }
   }
 
+  @Override
+  public int getLineWidth() {
+    return lineWidth;
+  }
+  
   private byte blockOnReadDetectConnectionLost(InputStream inputStream)
           throws IOException {
     int oneByte = inputStream.read();

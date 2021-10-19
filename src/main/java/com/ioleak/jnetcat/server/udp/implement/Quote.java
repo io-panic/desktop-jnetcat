@@ -49,8 +49,9 @@ import com.ioleak.jnetcat.server.udp.UDPClientConnection;
 public class Quote
         extends UDPClientConnection {
 
-  public static final int MAX_PACKET_LENGTH = 1;
   public static final String DEFAULT_QUOTES_TXT = "conf/quotes.txt";
+  private static final int MAX_PACKET_LENGTH = 1;
+  
   private final List<String> quotes = new ArrayList<>();
   private final Queue<String> commands = new LinkedList<>();
 
@@ -98,5 +99,10 @@ public class Quote
 
     // Logging.getLogger().info(String.format("Response sent to %s:%d", clientAddress.getHostAddress(), clientPort));
     datagramSocket.send(new DatagramPacket(data, data.length, clientAddress, clientPort));
+  }
+
+  @Override
+  public int getMaxPacketLength() {
+    return MAX_PACKET_LENGTH;
   }
 }

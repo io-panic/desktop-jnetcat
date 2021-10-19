@@ -43,4 +43,9 @@ public class Basic
   public void dataSend(DatagramSocket socket, DatagramPacket request) throws IOException {
     // we don't send any information 
   }
+
+  @Override
+  public int getMaxPacketLength() {
+    return 1024;
+  }
 }

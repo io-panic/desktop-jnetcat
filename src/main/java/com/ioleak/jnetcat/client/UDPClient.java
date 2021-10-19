@@ -41,7 +41,7 @@ import com.ioleak.jnetcat.common.interfaces.ProcessAction;
 import com.ioleak.jnetcat.common.properties.ObjectProperty;
 import com.ioleak.jnetcat.common.properties.Observable;
 import com.ioleak.jnetcat.common.utils.StringUtils;
-import com.ioleak.jnetcat.formatter.StreamFormatOutput;
+import com.ioleak.jnetcat.formatter.helpers.StreamFormatOutput;
 import com.ioleak.jnetcat.options.startup.ClientParametersUDP;
 
 public class UDPClient

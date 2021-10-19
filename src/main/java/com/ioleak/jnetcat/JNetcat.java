@@ -65,14 +65,14 @@ public class JNetcat {
       if (argumentsParser.switchPresent("-h")) {
         System.out.println(argumentsParser.getHelpMessage());
 
-        System.exit(0);
+        exitWithSuccess();
       }
     } catch (UnknownArgumentParserException ex) {
       System.out.println(ex.getMessage());
       System.out.println();
       System.out.println(argumentsParser.getHelpMessage());
 
-      System.exit(0);
+      exitWithSuccess();
     }
 
     String jsonParameters = argumentsParser.switchValue("-f", DEFAULT_CONFIG);
@@ -115,7 +115,7 @@ public class JNetcat {
     keyCharReader = new KeyCharReader(jnetcatRun::stopActiveExecution, () -> {
                                 boolean executionStopped = jnetcatRun.stopExecutions();
                                 if (executionStopped) {
-                                  System.exit(0);
+                                  exitWithSuccess();
                                 }
 
                                 return executionStopped;
@@ -151,7 +151,7 @@ public class JNetcat {
         Logging.getLogger().warn("A running thread was interrupted (and it was expected to stop: this message is informative only)");
       }
 
-      Logging.getLogger().warn(String.format("Existing thread stopped with return code: %d", jnetcatRun.getResultExecution()));
+      Logging.getLogger().warn(String.format("Existing thread stopped with return code: %s", jnetcatRun.getResultExecution()));
     }
 
     jnetcatThread = new Thread(jnetcatRun);
@@ -171,8 +171,16 @@ public class JNetcat {
   }
 
   private static void exit(JNetcatProcessResult resultExecution, JNetcatParameters params) {
-    if (!params.isDaemon()) {
+    boolean doNotExit = (params.isStartAsServer() && !params.isUseProtocolTCP() && params.getServerParametersUDP().isDaemon()) || 
+                         (params.isStartAsServer() && params.isUseProtocolTCP() && params.getServerParametersTCP().isDaemon());
+    
+    if (!doNotExit) {
+      Logging.getLogger().debug("Not executing as a daemon, exiting...");
       System.exit(resultExecution.getCode());
     }
+  }
+  
+  private static void exitWithSuccess() {
+    System.exit(0);
   }
 }

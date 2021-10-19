@@ -29,12 +29,22 @@ import java.beans.PropertyChangeEvent;
 
 import com.ioleak.jnetcat.common.Logging;
 import com.ioleak.jnetcat.common.utils.StringUtils;
+import com.ioleak.jnetcat.formatter.helpers.StreamFormatOutput;
+import com.ioleak.jnetcat.formatter.helpers.StreamRawReaderNoOutput;
 
 public class SimpleLoggerStringOutput
         extends StreamRawReaderNoOutput {
 
   private final StringBuilder currentData = new StringBuilder();
-
+  
+  public SimpleLoggerStringOutput(int lineWidth) {
+    this(null, lineWidth);
+  }
+  
+  public SimpleLoggerStringOutput(StreamFormatOutput prettyFormatOutput, int lineWidth) {
+    super(prettyFormatOutput, lineWidth);
+  }
+  
   @Override
   public void formatDataOutput(PropertyChangeEvent evt) {
     super.formatDataOutput(evt);
@@ -49,12 +59,10 @@ public class SimpleLoggerStringOutput
     String allReadData = currentData.toString();
     if (allReadData.length() > 0) {
       String removeLastCRLF = StringUtils.removeLastCharIfCRLF(allReadData);
-      Logging.getLogger().info(String.format("Server data:\n%s", removeLastCRLF));
+      Logging.getLogger().info(String.format("Received data:\n%s", removeLastCRLF));
     }
 
     currentData.setLength(0);
-    super.getEndOfStreamData();
-
-    return allReadData;
+    return super.getEndOfStreamData();
   }
 }

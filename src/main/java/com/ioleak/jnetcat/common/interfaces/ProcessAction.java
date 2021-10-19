@@ -26,7 +26,7 @@
 package com.ioleak.jnetcat.common.interfaces;
 
 import com.ioleak.jnetcat.common.properties.Observable;
-import com.ioleak.jnetcat.formatter.StreamFormatOutput;
+import com.ioleak.jnetcat.formatter.helpers.StreamFormatOutput;
 
 public interface ProcessAction {
 

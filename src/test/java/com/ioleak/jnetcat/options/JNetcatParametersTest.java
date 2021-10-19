@@ -52,14 +52,14 @@ public class JNetcatParametersTest {
 
   @Test
   public void ParametersBulder_InvalidServerOptions_ThrowsException() {
-    assertThrows(ServerIncompatibleArgumentException.class, () -> new JNetcatParameters.ParametersBuilder(true, true).build());
-    assertThrows(ServerIncompatibleArgumentException.class, () -> new JNetcatParameters.ParametersBuilder(true, false).build());
+    assertThrows(ServerIncompatibleArgumentException.class, () -> new JNetcatParameters.ParametersBuilder(true, true, new OutputFormatConfig()).build());
+    assertThrows(ServerIncompatibleArgumentException.class, () -> new JNetcatParameters.ParametersBuilder(true, false, new OutputFormatConfig()).build());
   }
 
   @Test
   public void ParametersBulder_InvalidClientOptions_ThrowsException() {
-    assertThrows(ClientIncompatibleArgumentException.class, () -> new JNetcatParameters.ParametersBuilder(false, true).build());
-    assertThrows(ClientIncompatibleArgumentException.class, () -> new JNetcatParameters.ParametersBuilder(false, false).build());
+    assertThrows(ClientIncompatibleArgumentException.class, () -> new JNetcatParameters.ParametersBuilder(false, true, new OutputFormatConfig()).build());
+    assertThrows(ClientIncompatibleArgumentException.class, () -> new JNetcatParameters.ParametersBuilder(false, false, new OutputFormatConfig()).build());
   }
 
   @Test

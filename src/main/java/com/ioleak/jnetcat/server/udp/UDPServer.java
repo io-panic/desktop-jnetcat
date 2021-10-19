@@ -32,7 +32,7 @@ import java.util.List;
 
 import com.ioleak.jnetcat.common.Logging;
 import com.ioleak.jnetcat.common.properties.Observable;
-import com.ioleak.jnetcat.formatter.StreamFormatOutput;
+import com.ioleak.jnetcat.formatter.helpers.StreamFormatOutput;
 import com.ioleak.jnetcat.options.startup.ServerParametersUDP;
 import com.ioleak.jnetcat.server.generic.Listener;
 import com.ioleak.jnetcat.server.generic.ServerState;

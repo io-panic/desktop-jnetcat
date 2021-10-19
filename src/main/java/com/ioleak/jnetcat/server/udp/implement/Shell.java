@@ -39,6 +39,7 @@ import com.ioleak.jnetcat.server.udp.UDPClientConnection;
 public class Shell
         extends UDPClientConnection {
 
+  private static final int MAX_PACKET_LENGTH = 1024;
   private final Queue<String> commands = new LinkedList<>();
 
   @Override
@@ -52,9 +53,14 @@ public class Shell
 
     InetAddress clientAddress = request.getAddress();
     int clientPort = request.getPort();
-    byte[] data = StringUtils.getBytesFromString(new ProcessExecutor().execute().toString());
+    byte[] data = StringUtils.getBytesFromString(new ProcessExecutor().execute(lastCommand).toString());
 
     // Logging.getLogger().info(String.format("Response sent to %s:%d", clientAddress.getHostAddress(), clientPort));
     datagramSocket.send(new DatagramPacket(data, data.length, clientAddress, clientPort));
+  }
+
+  @Override
+  public int getMaxPacketLength() {
+    return MAX_PACKET_LENGTH;
   }
 }

@@ -28,31 +28,36 @@ package com.ioleak.jnetcat.common;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.List;
+
+import com.ioleak.jnetcat.common.utils.StringUtils;
 
 public class ProcessExecutor {
 
-  public ProcessResult execute() {
-    Runtime rt = Runtime.getRuntime();
-    String[] commands = {"cmd.exe", "/c", "dir c:"};
-    Process proc;
+  public ProcessResult execute(String command) {
+    List<String> commands = StringUtils.splitStringSpaceExceptIfQuote(command);
     ProcessResult processResult = new ProcessResult();
 
     try {
-      proc = rt.exec(commands);
+      Logging.getLogger().info(String.format("Executing command: %s", String.join(" ", commands)));
+      ProcessBuilder build = new ProcessBuilder(commands);
+      Process proc = build.start();
 
       BufferedReader stdInput = new BufferedReader(new InputStreamReader(proc.getInputStream()));
       BufferedReader stdError = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
 
       String outputLine = null;
       while ((outputLine = stdInput.readLine()) != null) {
-        processResult.appendStdIn(String.format("%s%s", outputLine, System.lineSeparator()));
+        processResult.appendStdIn(String.format("%s%s", outputLine.trim(), System.lineSeparator()));
       }
 
       while ((outputLine = stdError.readLine()) != null) {
-        processResult.appendStdErr(String.format("%s%s", outputLine, System.lineSeparator()));
+        processResult.appendStdErr(String.format("%s%s", outputLine.trim(), System.lineSeparator()));
       }
 
       processResult.setExitValue(proc.waitFor());
+      Logging.getLogger().info(String.format("Command executed result: %d", proc.exitValue()));
+      
     } catch (IOException ex) {
       Logging.getLogger().error("Unable to executable command", ex);
     } catch (InterruptedException ex) {

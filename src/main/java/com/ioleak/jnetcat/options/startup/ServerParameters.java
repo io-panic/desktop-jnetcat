@@ -39,10 +39,13 @@ public abstract class ServerParameters
   private final String ip;
   private final Integer port;
 
+  private final boolean daemon;
+
   abstract static class ParametersBuilder<T extends ParametersBuilder> {
 
     private boolean multiThread = false;
     private boolean interactive = false;
+    private boolean daemon = false;
 
     private int port = -1;
     private String ip = "0.0.0.0";
@@ -51,6 +54,14 @@ public abstract class ServerParameters
 
     protected abstract T self();
 
+    public ParametersBuilder(ServerParameters serverParameters) {
+      withPort(serverParameters.getPort());
+      withIp(serverParameters.getIp());
+      withMultiThread(serverParameters.isMultiThread());
+      withInteractive(serverParameters.isInteractive());
+      withDaemon(serverParameters.isDaemon());
+    }
+        
     public ParametersBuilder(int port) {
       withPort(port);
     }
@@ -74,6 +85,11 @@ public abstract class ServerParameters
       this.interactive = interactive;
       return self();
     }
+
+    public final T withDaemon(boolean daemon) {
+      this.daemon = daemon;
+      return self();
+    }
   }
 
   ServerParameters(ParametersBuilder<?> builder) {
@@ -89,6 +105,7 @@ public abstract class ServerParameters
     this.port = builder.port;
     this.multiThread = builder.multiThread;
     this.interactive = builder.interactive;
+    this.daemon = builder.daemon;
   }
 
   public String getIp() {
@@ -105,5 +122,9 @@ public abstract class ServerParameters
 
   public boolean isInteractive() {
     return interactive;
+  }
+
+  public boolean isDaemon() {
+    return daemon;
   }
 }

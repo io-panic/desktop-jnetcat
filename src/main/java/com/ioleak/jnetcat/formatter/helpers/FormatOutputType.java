@@ -23,21 +23,43 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.ioleak.jnetcat.common;
+
+package com.ioleak.jnetcat.formatter.helpers;
+
+import com.ioleak.jnetcat.common.BaseEnum;
 
 
-import com.ioleak.jnetcat.common.ProcessExecutor.ProcessResult;
-import org.junit.jupiter.api.Test;
+public enum FormatOutputType
+        implements BaseEnum {
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+  NO_OUTPUT(0, "Communications are in silent mode"),
+  SIMPLE(1, "Standard input/output details"),
+  PRETTY_HEX(2, "Display all data using hexadecimal values");
 
-public class ProcessExecutorTest {
+  private int code;
+  private String msg;
 
-  @Test
-  public void execute_SimpleCommand_VerifyResult() {
-    ProcessExecutor processExecutor = new ProcessExecutor();
-    ProcessResult processResult = processExecutor.execute("cmd.exe /c echo 'bleh'");
-    
-    assertEquals("'bleh'" + System.lineSeparator(), processResult.getStdIn());
+  private FormatOutputType(int code, String msg) {
+    this.code = code;
+    this.msg = msg;
+  }
+
+  @Override
+  public int getCode() {
+    return code;
+  }
+
+  @Override
+  public String getDetails(Object... args) {
+    return msg;
+  }
+
+  public StreamFormatOutput getFormatOutput(int lineWidth) {
+    return FormatOutputFactory.createFormatOutput(this, lineWidth);
+  }
+
+  @Override
+  public String toString() {
+    return String.format("%d [%s]", getCode(), getDetails());
   }
 }

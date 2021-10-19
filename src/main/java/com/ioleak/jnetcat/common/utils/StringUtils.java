@@ -26,6 +26,7 @@
 package com.ioleak.jnetcat.common.utils;
 
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.regex.Matcher;
@@ -102,7 +103,7 @@ public class StringUtils {
 
     if (stringToClean != null && !stringToClean.isEmpty()) {
       cleanedString = stringToClean;
-      
+
       do {
         int length = cleanedString.length() - 1;
         lastCharCRLF = (length >= 0);
@@ -139,6 +140,16 @@ public class StringUtils {
 
   public static boolean isNullOrEmpty(String string) {
     return string == null || string.trim().isEmpty();
+  }
+
+  public static List<String> splitStringSpaceExceptIfQuote(String data) {
+    List<String> splitted = new ArrayList<>();
+    Matcher m = Pattern.compile("([^\"]\\S*|\".+?\")\\s*").matcher(data);
+    while (m.find()) {
+      splitted.add(m.group(1));
+    }
+    
+    return splitted;
   }
 
   public static String generateRandomString(int length) {

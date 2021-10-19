@@ -30,7 +30,7 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.net.SocketException;
 
-import com.ioleak.jnetcat.formatter.StreamFormatOutput;
+import com.ioleak.jnetcat.formatter.helpers.StreamFormatOutput;
 
 public abstract class TCPClientConnection {
 

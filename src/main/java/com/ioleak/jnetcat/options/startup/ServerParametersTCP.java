@@ -45,12 +45,8 @@ public class ServerParametersTCP
     }
 
     public ParametersBuilder(ServerParametersTCP serverParametersTCP) {
-      super(serverParametersTCP.getPort());
-
-      withIp(serverParametersTCP.getIp());
-      withMultiThread(serverParametersTCP.isMultiThread());
+      super(serverParametersTCP);
       withServerType(serverParametersTCP.getServerType());
-      withInteractive(serverParametersTCP.isInteractive());
     }
 
     public final ParametersBuilder withServerType(TCPServerType tcpServerType) {

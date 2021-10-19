@@ -31,11 +31,11 @@ import java.util.List;
 
 import com.ioleak.jnetcat.common.Logging;
 import com.ioleak.jnetcat.common.utils.StringUtils;
+import com.ioleak.jnetcat.formatter.helpers.StreamFormatOutput;
+import com.ioleak.jnetcat.formatter.helpers.StreamRawReaderNoOutput;
 
 public class PrettyHexStringOutput
         extends StreamRawReaderNoOutput {
-  
-  private final int lineWidth;
   
   private final List<Byte> bufferData = new ArrayList<>();
 
@@ -47,9 +47,7 @@ public class PrettyHexStringOutput
   }
   
   public PrettyHexStringOutput(StreamFormatOutput prettyFormatOutput, int lineWidth) {
-    super(prettyFormatOutput);
-    
-    this.lineWidth = lineWidth;
+    super(prettyFormatOutput, lineWidth);
   }
   
   @Override
@@ -71,7 +69,7 @@ public class PrettyHexStringOutput
         reset2BytesData();
       }
       
-      if (bufferData.size() >= lineWidth) {
+      if (bufferData.size() >= getLineWidth()) {
         flushBufferToOutput();
       }
     }

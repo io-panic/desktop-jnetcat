@@ -131,4 +131,9 @@ public class StringUtilsTest {
     String stringFromBytes = StringUtils.getStringFromBytes(tmp);
     assertEquals("#;4&-èàOK", stringFromBytes);
   }
+  
+  @Test
+  public void splitStringSpaceExceptIfQuote_Values_AsExpected() {
+    assertEquals(Arrays.asList("arg1", "arg2", "arg3", "\"arg5 and arg6\"", "arg8"), StringUtils.splitStringSpaceExceptIfQuote("arg1 arg2 arg3 \"arg5 and arg6\" arg8"));
+  }
 }

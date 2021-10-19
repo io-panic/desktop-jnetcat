@@ -23,15 +23,13 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+
 package com.ioleak.jnetcat.formatter;
 
-import java.beans.PropertyChangeEvent;
-import java.io.IOException;
-import java.io.InputStream;
+import com.ioleak.jnetcat.formatter.helpers.StreamRawReaderNoOutput;
 
-public interface StreamFormatOutput {
 
-  public void startReading(InputStream inputStream) throws IOException;
-  public void formatDataOutput(PropertyChangeEvent evt);
-  public String getEndOfStreamData();
+public class SilentModeFormatOutput
+        extends StreamRawReaderNoOutput {
+
 }
