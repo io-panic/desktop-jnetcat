@@ -28,19 +28,19 @@ Debug your application network issues :
 conf/options.json
 
 *"formatOutputType"* support one of these values:  
-  **NO_OUTPUT**:  Communications are in silent mode  
-  **SIMPLE**:     Standard input/output details  
-  **PRETTY_HEX**: Display all data using hexadecimal values  
+  * **NO_OUTPUT**:  Communications are in silent mode  
+  * **SIMPLE**:     Standard input/output details  
+  * **PRETTY_HEX**: Display all data using hexadecimal values  
 
 *"serverType"* support one of these values (TCP): 
-  **BASIC**:  Listen only server"),
-  **ECHO**:   Echo requests on the server"),
-  **PROXY**:  Forward requests to another server");
+  * **BASIC**:  Listen only server"),
+  * **ECHO**:   Echo requests on the server"),
+  * **PROXY**:  Forward requests to another server");
   
 *"serverType"* support one of these values (UDP):  
-  **BASIC**:  Listen only server  
-  **QUOTE**:  QUOTE server  
-  **SHELL**:  SHELL server  
+  * **BASIC**:  Listen only server  
+  * **QUOTE**:  QUOTE server  
+  * **SHELL**:  SHELL server  
 
 ## COMMAND LINE
 
