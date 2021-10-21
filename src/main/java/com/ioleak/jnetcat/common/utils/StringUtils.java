@@ -25,16 +25,20 @@
  */
 package com.ioleak.jnetcat.common.utils;
 
+import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.ioleak.jnetcat.common.Logging;
+
 public class StringUtils {
 
-  public static final Charset DEFAULT_ENCODING_NETWORK = Charset.forName("ISO-8859-1"); // 8 bits
+  public static final Charset DEFAULT_ENCODING_NETWORK = StandardCharsets.ISO_8859_1; // 8 bits
 
   private static final int DEFAULT_STRINGBUILDER_CAPACITY = 250;
   private static final int NB_CHAR_BETWEEN_LINES = 50;
@@ -97,6 +101,18 @@ public class StringUtils {
     return data.getBytes(DEFAULT_ENCODING_NETWORK);
   }
 
+  public static String getStringIso8859ToUtf8(String iso8859) {
+    String utf8 = "";
+    
+    try {
+      utf8 = new String(iso8859.getBytes("ISO-8859-1"), StandardCharsets.UTF_8);
+    } catch (UnsupportedEncodingException ex) {
+      Logging.getLogger().error("Unable to decode ISO-8859-1 string", ex);
+    }
+    
+    return utf8;
+  }
+  
   public static String removeLastCharIfCRLF(final String stringToClean) {
     boolean lastCharCRLF = false;
     String cleanedString = "";

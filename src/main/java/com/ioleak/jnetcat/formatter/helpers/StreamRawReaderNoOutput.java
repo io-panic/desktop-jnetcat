@@ -41,6 +41,8 @@ import com.ioleak.jnetcat.formatter.exception.StreamNoDataException;
 public abstract class StreamRawReaderNoOutput
         implements StreamFormatOutput {
 
+  private static final int MAX_BUFFER_SIZE = 2048;
+  
   private final ObjectProperty<Byte> dataReceived = new ObjectProperty<>();
   private final List<Byte> bufferDataReceived = new ArrayList<>();
   private final int lineWidth;
@@ -82,10 +84,10 @@ public abstract class StreamRawReaderNoOutput
 
     do {
       try {
-        byte[] inputData = new byte[2048];
+        byte[] inputData = new byte[MAX_BUFFER_SIZE];
         readByte(blockOnReadDetectConnectionLost(inputStream));
-
-        result = inputStream.read(inputData, 0, inputStream.available());
+        
+        result = inputStream.read(inputData, 0, inputStream.available() > MAX_BUFFER_SIZE ? MAX_BUFFER_SIZE : inputStream.available());
         int[] readBytes = IntStream.range(0, result).map(i -> inputData[i]).toArray();
 
         for (int aByte : readBytes) {

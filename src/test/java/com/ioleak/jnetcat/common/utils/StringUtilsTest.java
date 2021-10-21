@@ -133,6 +133,13 @@ public class StringUtilsTest {
   }
   
   @Test
+  public void getStringFromBytesToUTF8_Values_AsExpected() {
+    String utf8 = "éà \n âîOK 3";
+    String result = StringUtils.getStringIso8859ToUtf8(new String(utf8.getBytes(), StringUtils.DEFAULT_ENCODING_NETWORK));
+    assertEquals(utf8, result);
+  }
+  
+  @Test
   public void splitStringSpaceExceptIfQuote_Values_AsExpected() {
     assertEquals(Arrays.asList("arg1", "arg2", "arg3", "\"arg5 and arg6\"", "arg8"), StringUtils.splitStringSpaceExceptIfQuote("arg1 arg2 arg3 \"arg5 and arg6\" arg8"));
   }
